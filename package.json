@@ -8,6 +8,9 @@
   },
   "scripts": {
     "migrate": "node scripts/migrate.js",
+    "import:hospitals": "node scripts/data-import/import_hospitals.js",
+    "seed:inventory": "node scripts/synthetic-data/generate_inventory.js",
+    "seed:scale": "node scripts/synthetic-data/generate_scale_dataset.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
