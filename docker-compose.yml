@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: crisis-care-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: crisis_care
+      POSTGRES_USER: crisis_user
+      POSTGRES_PASSWORD: crisis_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crisis_user -d crisis_care"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+    driver: local
