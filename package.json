@@ -1,0 +1,20 @@
+{
+  "name": "crisis-care",
+  "version": "1.0.0",
+  "description": "Resource-aware emergency hospital routing system — single-city pilot and academic feasibility study instrument.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "migrate": "node scripts/migrate.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "pg": "^8.22.0"
+  }
+}

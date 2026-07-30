@@ -67,8 +67,12 @@ Patient-facing endpoints are **unauthenticated by design**. Admin endpoints alwa
 docker-compose up -d
 ```
 
-Postgres 16 + PostGIS 3.4 will be available on `localhost:5432`.  
+Postgres 16 + PostGIS 3.4 will be available on `localhost:5433`.  
 Database: `crisis_care` · User: `crisis_user` · Password: `crisis_password`
+
+> **Note:** The Docker container maps to host port **5433** (not 5432) to avoid
+> conflict with any native PostgreSQL installation on the host. All `DATABASE_URL`
+> values in `.env.example` files use `:5433` accordingly.
 
 Verify PostGIS is available:
 ```bash
