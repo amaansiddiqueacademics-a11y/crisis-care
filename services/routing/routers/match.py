@@ -1,28 +1,35 @@
 """
-Crisis Care — POST /match router
+Crisis Care — POST /match router  (FR-2, all 6 steps)
 
-Implements FR-2 steps 1–3 from docs/PRD.md:
+Full request flow per docs/PRD.md §8 FR-2:
 
   1. Spatial + inventory query at radius_km = 10.
-  2. AND logic: hospital qualifies only if it has EVERY requested resource type
-     with quantity_available > 0 AND last_updated_at within its own
-     staleness_threshold_minutes. A stale or zero-quantity resource disqualifies
-     the hospital entirely.
-  3. Radius-expansion loop: 10 km → 25 km → 50 km → city-wide (no distance
-     filter). Stop at the first radius that returns ≥ 1 qualifying hospital.
-  4. Return top 3 by straight-line distance (ST_Distance, metres → km).
+  2. AND logic: hospital qualifies only if EVERY requested resource_type has
+     quantity_available > 0 AND last_updated_at within staleness_threshold_minutes.
+  3. Radius expansion: 10 km → 25 km → 50 km → city-wide. Stop at first hit.
+  4. Call Mapbox Directions API (driving-traffic) for each of the top-3
+     candidates concurrently. Elapsed time measured precisely.
+  5. Re-rank by real ETA (lowest first). Return the winner.
+  6. Compute baseline_hospital_id via plain nearest-distance query (no
+     resource filter). Write one query_log row — including zero-match cases.
 
-Mapbox ETA re-ranking (step 4–5) and query_log writing (step 6) are
-intentionally omitted here; they are the next integration step.
+Timing is wall-clock via time.perf_counter:
+  db_query_time_ms  — covers steps 1–3 (all radius attempts)
+  mapbox_time_ms    — covers step 4 (entire concurrent batch)
+  response_time_ms  — total from first byte of request to log write
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
+import mapbox as mapbox_client
+import query_logger
 from database import get_pool
 from models import (
     HospitalResult,
@@ -35,21 +42,24 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# Radius expansion sequence defined in PRD §8 FR-2 step 3.
-# None = city-wide search (no ST_DWithin filter).
+# Radius expansion sequence per PRD §8 FR-2 step 3.
+# None = city-wide (no ST_DWithin filter).
 SEARCH_RADII_KM: list[int | None] = [10, 25, 50, None]
 
 # ---------------------------------------------------------------------------
-# Core SQL
+# SQL: spatial + inventory match
 # ---------------------------------------------------------------------------
 
-# Used when a distance radius is supplied (steps 1–3 normal case).
+# We SELECT lat/lng explicitly (extracted from geography) so mapbox.py has
+# real coordinates without a second DB round-trip.
 _MATCH_SQL_WITH_RADIUS = """
 SELECT
     h.id,
     h.name,
     h.address,
     h.phone,
+    ST_Y(h.geom::geometry) AS lat,
+    ST_X(h.geom::geometry) AS lng,
     ST_Distance(
         h.geom,
         ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
@@ -59,7 +69,7 @@ WHERE
     ST_DWithin(
         h.geom,
         ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
-        $3            -- radius in metres
+        $3
     )
     AND h.id IN (
         SELECT hospital_id
@@ -74,13 +84,14 @@ ORDER BY distance_m ASC
 LIMIT 3;
 """
 
-# City-wide fallback — no ST_DWithin, still returns distance for ordering.
 _MATCH_SQL_CITY_WIDE = """
 SELECT
     h.id,
     h.name,
     h.address,
     h.phone,
+    ST_Y(h.geom::geometry) AS lat,
+    ST_X(h.geom::geometry) AS lng,
     ST_Distance(
         h.geom,
         ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
@@ -102,7 +113,7 @@ LIMIT 3;
 
 
 # ---------------------------------------------------------------------------
-# Helper: run one radius attempt
+# Helper: execute one radius attempt
 # ---------------------------------------------------------------------------
 
 async def _query_at_radius(
@@ -112,30 +123,18 @@ async def _query_at_radius(
     resource_types: list[str],
     radius_km: int | None,
 ) -> list[dict[str, Any]]:
-    """
-    Execute the spatial + inventory query for one radius.
-
-    Returns a (possibly empty) list of matching hospital records.
-    radius_km=None triggers the city-wide (no distance filter) query.
-    """
     num_types = len(resource_types)
 
     async with pool.acquire() as conn:
         if radius_km is None:
             rows = await conn.fetch(
-                _MATCH_SQL_CITY_WIDE,
-                lng,
-                lat,
-                resource_types,   # asyncpg sends list[str] as text[] then Postgres casts
-                num_types,
+                _MATCH_SQL_CITY_WIDE, lng, lat, resource_types, num_types
             )
         else:
-            radius_m = radius_km * 1000.0
             rows = await conn.fetch(
                 _MATCH_SQL_WITH_RADIUS,
-                lng,
-                lat,
-                radius_m,
+                lng, lat,
+                float(radius_km * 1000),  # metres
                 resource_types,
                 num_types,
             )
@@ -152,18 +151,22 @@ async def _query_at_radius(
     response_model=MatchResponse | NoMatchResponse,
     summary="Find the nearest qualifying hospital",
     description=(
-        "Runs a radius-expanding spatial search. "
-        "A hospital qualifies only if it holds every requested resource type "
-        "with quantity_available > 0 and last_updated_at within its "
-        "staleness_threshold_minutes. "
-        "Tries 10 km → 25 km → 50 km → city-wide; stops at first hit."
+        "Radius-expanding spatial search with AND-logic resource filtering. "
+        "Candidates are re-ranked by Mapbox driving-traffic ETA. "
+        "One query_log row is written per call, including zero-match cases."
     ),
 )
 async def match(body: MatchRequest, request: Request):
+    t_request_start = time.perf_counter()
     pool = get_pool()
 
+    # ------------------------------------------------------------------
+    # Steps 1–3: spatial + inventory query, radius expansion
+    # ------------------------------------------------------------------
+    t_db_start = time.perf_counter()
+
     candidates: list[dict[str, Any]] = []
-    matched_radius: int | None = -1   # sentinel: -1 means not yet found
+    matched_radius: int | None = -1   # sentinel; -1 = not yet set
 
     for radius_km in SEARCH_RADII_KM:
         label = f"{radius_km} km" if radius_km is not None else "city-wide"
@@ -171,40 +174,92 @@ async def match(body: MatchRequest, request: Request):
             "match: lat=%.5f lng=%.5f types=%s radius=%s",
             body.lat, body.lng, body.resource_types, label,
         )
-
         try:
             candidates = await _query_at_radius(
                 pool, body.lng, body.lat, body.resource_types, radius_km
             )
         except Exception as exc:
-            logger.exception("DB error during radius=%s query", label)
+            logger.exception("DB error at radius=%s", label)
             raise HTTPException(status_code=500, detail=f"Database error: {exc}") from exc
 
         if candidates:
-            matched_radius = radius_km  # None is valid (city-wide)
+            matched_radius = radius_km   # None is valid (city-wide)
             break
 
-    # No qualifying hospital at any radius
-    if not candidates:
-        logger.info(
-            "match: no qualifying hospital found for types=%s",
-            body.resource_types,
-        )
-        return NoMatchResponse()
+    db_query_time_ms = round((time.perf_counter() - t_db_start) * 1000)
 
-    # Return the closest qualifying hospital (already ordered by distance_m ASC)
-    best = candidates[0]
+    # ------------------------------------------------------------------
+    # Step 6 (partial): baseline hospital — runs concurrently with Mapbox
+    # ------------------------------------------------------------------
+    # We always compute this, even on zero-match, so every log row has it.
+    baseline_task = asyncio.create_task(
+        query_logger.get_baseline_hospital_id(pool, body.lng, body.lat)
+    )
+
+    # ------------------------------------------------------------------
+    # Steps 4–5: Mapbox ETA fetch + re-rank (only when candidates exist)
+    # ------------------------------------------------------------------
+    mapbox_time_ms = 0
+
+    if candidates:
+        ranked, mapbox_time_ms = await mapbox_client.rank_by_eta(
+            candidates, body.lng, body.lat
+        )
+        best = ranked[0]
+    else:
+        best = None
+
+    # ------------------------------------------------------------------
+    # Step 6 (complete): await baseline + write query_log
+    # ------------------------------------------------------------------
+    baseline_hospital_id = await baseline_task
+
+    response_time_ms = round((time.perf_counter() - t_request_start) * 1000)
+
+    log_id = await query_logger.write_query_log(
+        pool,
+        lng=body.lng,
+        lat=body.lat,
+        resource_types=body.resource_types,
+        matched_hospital_id=best["id"] if best else None,
+        baseline_hospital_id=baseline_hospital_id,
+        search_radius_used_km=matched_radius if matched_radius != -1 else None,
+        db_query_time_ms=db_query_time_ms,
+        mapbox_time_ms=mapbox_time_ms,
+        response_time_ms=response_time_ms,
+    )
+
+    # ------------------------------------------------------------------
+    # Build response
+    # ------------------------------------------------------------------
+    if best is None:
+        logger.info(
+            "match: no qualifying hospital | log_id=%s baseline=%s",
+            log_id, baseline_hospital_id,
+        )
+        return NoMatchResponse(query_log_id=log_id)
+
     distance_km = round(best["distance_m"] / 1000.0, 3)
+
+    logger.info(
+        "match: winner=%s eta=%ss dist=%.3fkm radius=%s | log_id=%s",
+        best["name"],
+        best.get("eta_seconds"),
+        distance_km,
+        matched_radius,
+        log_id,
+    )
 
     return MatchResponse(
         hospital=HospitalResult(
             id=best["id"],
             name=best["name"],
-            address=best["address"],
-            phone=best["phone"],
-            distance_km=distance_km,
+            address=best.get("address"),
+            phone=best.get("phone"),
         ),
-        search_radius_used_km=matched_radius,  # None = city-wide
-        # eta_seconds and route_geometry remain None until Mapbox integration
-        # query_log_id remains None until query logging is implemented
+        eta_seconds=best.get("eta_seconds"),
+        distance_km=distance_km,
+        route_geometry=best.get("route_geometry"),
+        search_radius_used_km=matched_radius,   # None = city-wide
+        query_log_id=log_id,
     )
