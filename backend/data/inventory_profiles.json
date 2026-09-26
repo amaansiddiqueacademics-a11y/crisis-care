@@ -1,0 +1,191 @@
+{
+  "note": "SYNTHETIC inventory. Real hospital names/locations, simulated resources. Document in paper methodology.",
+  "rng_seed": 42,
+  "map_to_existing_resource_types": "Map these keys to the resource type names already in the DB (e.g. 'ICU Bed', 'Blood O-'). Every hospital gets a row for every resource type; quantity may be 0.",
+  "profiles": {
+    "tier_A_urban": {
+      "icu_bed": [
+        6,
+        30
+      ],
+      "ventilator": [
+        4,
+        20
+      ],
+      "oxygen_cylinder": [
+        20,
+        80
+      ],
+      "trauma_surgeon": {
+        "p": 0.85,
+        "qty": [
+          1,
+          4
+        ]
+      },
+      "ct_scanner": {
+        "p": 0.95,
+        "qty": [
+          1,
+          3
+        ]
+      },
+      "cardiologist": {
+        "p": 0.95,
+        "qty": [
+          1,
+          5
+        ]
+      },
+      "cardiac_icu_bed": {
+        "p": 0.85,
+        "qty": [
+          2,
+          10
+        ]
+      },
+      "neurologist": {
+        "p": 0.8,
+        "qty": [
+          1,
+          3
+        ]
+      },
+      "blood_units_each_type": [
+        0,
+        30
+      ],
+      "blood_O_neg": [
+        0,
+        8
+      ],
+      "blood_AB_neg": [
+        0,
+        5
+      ]
+    },
+    "tier_B_urban": {
+      "icu_bed": [
+        0,
+        6
+      ],
+      "ventilator": [
+        0,
+        4
+      ],
+      "oxygen_cylinder": [
+        5,
+        30
+      ],
+      "trauma_surgeon": {
+        "p": 0.3,
+        "qty": [
+          1,
+          1
+        ]
+      },
+      "ct_scanner": {
+        "p": 0.35,
+        "qty": [
+          1,
+          1
+        ]
+      },
+      "cardiologist": {
+        "p": 0.4,
+        "qty": [
+          1,
+          1
+        ]
+      },
+      "cardiac_icu_bed": {
+        "p": 0.3,
+        "qty": [
+          1,
+          2
+        ]
+      },
+      "neurologist": {
+        "p": 0.15,
+        "qty": [
+          1,
+          1
+        ]
+      },
+      "blood_units_each_type": [
+        0,
+        10
+      ],
+      "blood_O_neg": [
+        0,
+        2
+      ],
+      "blood_AB_neg": [
+        0,
+        2
+      ]
+    },
+    "tier_B_rural": {
+      "icu_bed": [
+        0,
+        3
+      ],
+      "ventilator": [
+        0,
+        2
+      ],
+      "oxygen_cylinder": [
+        5,
+        20
+      ],
+      "trauma_surgeon": {
+        "p": 0.15,
+        "qty": [
+          1,
+          1
+        ]
+      },
+      "ct_scanner": {
+        "p": 0.15,
+        "qty": [
+          1,
+          1
+        ]
+      },
+      "cardiologist": {
+        "p": 0.2,
+        "qty": [
+          1,
+          1
+        ]
+      },
+      "cardiac_icu_bed": {
+        "p": 0.1,
+        "qty": [
+          1,
+          1
+        ]
+      },
+      "neurologist": {
+        "p": 0.05,
+        "qty": [
+          1,
+          1
+        ]
+      },
+      "blood_units_each_type": [
+        0,
+        6
+      ],
+      "blood_O_neg": [
+        0,
+        1
+      ],
+      "blood_AB_neg": [
+        0,
+        1
+      ]
+    }
+  },
+  "assignment": "suggested_tier=A -> tier_A_urban; suggested_tier=B and region_type in (urban_dense, urban_mid) -> tier_B_urban; region_type=rural_sparse -> tier_B_rural"
+}
