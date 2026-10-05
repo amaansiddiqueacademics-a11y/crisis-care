@@ -28,7 +28,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
-import mapbox as mapbox_client
+import ors as mapbox_client          # drop-in: same rank_by_eta / fetch_eta interface
 import query_logger
 from database import get_pool
 from models import (
@@ -225,7 +225,7 @@ async def match(body: MatchRequest, request: Request):
         baseline_hospital_id=baseline_hospital_id,
         search_radius_used_km=matched_radius if matched_radius != -1 else None,
         db_query_time_ms=db_query_time_ms,
-        mapbox_time_ms=mapbox_time_ms,
+        routing_api_time_ms=mapbox_time_ms,
         response_time_ms=response_time_ms,
     )
 

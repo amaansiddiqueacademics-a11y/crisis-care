@@ -34,8 +34,9 @@ const HEARTBEAT_INTERVAL_MS = 30_000;
 router.get('/hospital/:hospitalId', (req, res) => {
   const hospitalId = parseInt(req.params.hospitalId, 10);
 
-  if (isNaN(hospitalId) || hospitalId <= 0) {
-    return res.status(400).json({ error: 'hospitalId must be a positive integer' });
+  // hospital_id=0 is a special global dispatch-events channel (no hospital filter).
+  if (isNaN(hospitalId) || hospitalId < 0) {
+    return res.status(400).json({ error: 'hospitalId must be a non-negative integer (0 = global)' });
   }
 
   // Set SSE headers — disable buffering (Nginx/express-compress need these)

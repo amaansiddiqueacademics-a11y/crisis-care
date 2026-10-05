@@ -12,7 +12,7 @@ Implements FR-2 step 6 / FR-5 from docs/PRD.md:
 
   query_log INSERT:
     One row per /match call, including zero-match cases.
-    All timing columns (db_query_time_ms, mapbox_time_ms, response_time_ms)
+    All timing columns (db_query_time_ms, routing_api_time_ms, response_time_ms)
     are measured wall-clock values passed in by the caller — not estimates.
 
 This module is intentionally side-effect free except for the DB write.
@@ -50,7 +50,7 @@ INSERT INTO query_log (
     baseline_hospital_id,
     search_radius_used_km,
     db_query_time_ms,
-    mapbox_time_ms,
+    routing_api_time_ms,
     response_time_ms
 ) VALUES (
     ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,  -- patient_location (lng, lat)
@@ -59,7 +59,7 @@ INSERT INTO query_log (
     $5,                                                  -- baseline_hospital_id
     $6,                                                  -- search_radius_used_km (NULL = city-wide)
     $7,                                                  -- db_query_time_ms
-    $8,                                                  -- mapbox_time_ms
+    $8,                                                  -- routing_api_time_ms
     $9                                                   -- response_time_ms
 )
 RETURNING id;
@@ -92,7 +92,7 @@ async def write_query_log(
     baseline_hospital_id: int | None,
     search_radius_used_km: int | None,
     db_query_time_ms: int,
-    mapbox_time_ms: int,
+    routing_api_time_ms: int,
     response_time_ms: int,
 ) -> int | None:
     """
@@ -115,7 +115,7 @@ async def write_query_log(
                 baseline_hospital_id,     # None → NULL
                 search_radius_used_km,    # None → NULL
                 db_query_time_ms,
-                mapbox_time_ms,
+                routing_api_time_ms,
                 response_time_ms,
             )
         log_id = row["id"] if row else None
@@ -127,10 +127,11 @@ async def write_query_log(
             baseline_hospital_id,
             search_radius_used_km,
             db_query_time_ms,
-            mapbox_time_ms,
+            routing_api_time_ms,
             response_time_ms,
         )
         return log_id
     except Exception as exc:
         logger.error("Failed to write query_log: %s", exc)
         return None
+

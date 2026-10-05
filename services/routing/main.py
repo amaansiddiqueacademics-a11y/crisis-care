@@ -20,7 +20,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import database
-from routers import match, resource_types
+from routers import match, resource_types, route_incident, hospitals_summary
 
 logging.basicConfig(
     level=logging.INFO,
@@ -71,8 +71,10 @@ app.add_middleware(
 # Routers
 # ---------------------------------------------------------------------------
 
-app.include_router(match.router, tags=["matching"])
-app.include_router(resource_types.router, tags=["meta"])
+app.include_router(match.router,              tags=["matching"])
+app.include_router(route_incident.router,     tags=["routing-v2"])
+app.include_router(resource_types.router,     tags=["meta"])
+app.include_router(hospitals_summary.router,  tags=["live-status"])
 
 
 # ---------------------------------------------------------------------------

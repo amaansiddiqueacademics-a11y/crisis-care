@@ -7,6 +7,8 @@
     "doc": "docs"
   },
   "scripts": {
+    "dev": "node scripts/dev.js",
+    "test:smoke": "node scripts/smoke-test.js",
     "migrate": "node scripts/migrate.js",
     "import:hospitals": "node scripts/data-import/import_hospitals.js",
     "seed:inventory": "node scripts/synthetic-data/generate_inventory.js",

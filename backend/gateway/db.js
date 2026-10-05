@@ -19,6 +19,11 @@ const pool = new Pool({
   max: 10,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
+  // Prevent Docker/OS from silently dropping idle TCP connections,
+  // which causes "Connection terminated due to connection timeout" on
+  // the first request after an idle period.
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10_000,
 });
 
 pool.on('error', (err) => {
