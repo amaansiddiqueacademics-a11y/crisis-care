@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   HeartHandshake,
   Activity,
@@ -6,12 +6,12 @@ import {
   Building2,
   ShieldCheck,
   RotateCcw,
-  Flame,
   Wifi,
   WifiOff,
   Layers,
   Circle,
   ChevronDown,
+  Check,
 } from 'lucide-react';
 import { useCrisisCare } from '../../context/CrisisCareContext';
 
@@ -26,14 +26,16 @@ const NAV_ITEMS = [
 export const Header = () => {
   const {
     activeSection, setActiveSection,
-    isOffline, resetToSampleData,
-    theme, toggleTheme,
+    isOffline,
+    theme, chooseTheme, resetTheme,
     backendOnline, citizenIncident,
   } = useCrisisCare();
 
   const [scrolled, setScrolled]       = useState(false);
   const [mobileOpen, setMobileOpen]   = useState(false);
   const [time, setTime]               = useState(new Date());
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const themeMenuRef = useRef(null);
 
   // Scroll effect
   useEffect(() => {
@@ -48,7 +50,15 @@ export const Header = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const isRed = theme === 'red';
+  useEffect(() => {
+    const onPointerDown = event => { if (!themeMenuRef.current?.contains(event.target)) setThemeMenuOpen(false); };
+    const onKeyDown = event => { if (event.key === 'Escape') setThemeMenuOpen(false); };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => { document.removeEventListener('pointerdown', onPointerDown); document.removeEventListener('keydown', onKeyDown); };
+  }, []);
+
+  const isCoral = theme === 'coral-slate';
 
   const backendStatus =
     backendOnline === true  ? { label: 'Backend Online',  color: '#22c55e', pulse: true }  :
@@ -64,7 +74,7 @@ export const Header = () => {
         relative z-50 border-b transition-all duration-300
         ${scrolled ? 'hidden' : 'flex'}
         items-center justify-between px-4 py-1.5 text-xs
-        bg-[#0a0b0f] border-[rgba(255,255,255,0.06)]
+            system-bar bg-[#071A1C] border-[rgba(255,255,255,0.06)]
       `}>
         {/* Left: backend status */}
         <div className="flex items-center gap-3">
@@ -96,25 +106,22 @@ export const Header = () => {
         <div className="flex items-center gap-3">
           <span className="font-mono text-[10px] text-[rgba(255,255,255,0.25)]">{timeStr}</span>
 
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded transition-all
-                       bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)]
-                       text-[rgba(255,255,255,0.5)] hover:text-white border border-[rgba(255,255,255,0.07)]"
-          >
-            <Flame className="w-2.5 h-2.5 text-red-500" />
-            {isRed ? 'Red & Black' : 'Deep Teal'}
-          </button>
-
-          <button
-            onClick={resetToSampleData}
-            className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded transition-all
-                       bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)]
-                       text-[rgba(255,255,255,0.4)] hover:text-white border border-[rgba(255,255,255,0.07)]"
-          >
-            <RotateCcw className="w-2.5 h-2.5" />
-            Reset
-          </button>
+          <div className="relative" ref={themeMenuRef}>
+            <button type="button" aria-haspopup="menu" aria-expanded={themeMenuOpen} onClick={() => setThemeMenuOpen(v => !v)} className="flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[.07] px-2 py-1 text-[10px] font-semibold text-white/85 transition hover:bg-white/[.12] hover:text-white">
+              <span className={`h-2 w-2 rounded-full ${isCoral ? 'bg-[#FF453A]' : 'bg-[#2A9D8F]'}`} />
+              {isCoral ? 'Coral & Slate' : 'Coastal Teal'} <ChevronDown className={`h-3 w-3 transition-transform ${themeMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {themeMenuOpen && <div role="menu" aria-label="Select application theme" className="absolute right-0 top-full z-[80] mt-2 w-56 rounded-xl border border-[#D7E1DF] bg-white p-2 text-[#102A2B] shadow-[0_14px_38px_rgba(7,26,28,.2)]">
+              <div className="px-2 pb-1.5 pt-1 text-[9px] font-bold uppercase tracking-[.16em] text-[#718486]">Theme</div>
+              {[{ id: 'coral-slate', label: 'Coral & Slate', swatches: ['#FF453A', '#071A1C', '#F4F7F6'] }, { id: 'coastal-teal', label: 'Coastal Teal', swatches: ['#0F766E', '#073B3A', '#F2F8F7'] }].map(option => {
+                const selected = theme === option.id;
+                return <button key={option.id} type="button" role="menuitemradio" aria-checked={selected} onClick={() => { chooseTheme(option.id); setThemeMenuOpen(false); }} className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-xs transition ${selected ? 'bg-[#EAF0EF] font-semibold text-[#102A2B]' : 'text-[#526668] hover:bg-[#F4F7F6]'}`}>
+                  <span className="flex shrink-0 -space-x-1">{option.swatches.map(color => <i key={color} className="h-3.5 w-3.5 rounded-full border border-white shadow-sm" style={{ backgroundColor: color }} />)}</span><span className="flex-1">{option.label}</span>{selected && <Check className="h-3.5 w-3.5 text-[#2675D9]" />}
+                </button>;
+              })}
+            </div>}
+          </div>
+          <button type="button" onClick={() => { resetTheme(); setThemeMenuOpen(false); }} title="Reset theme to Coral & Slate" className="flex items-center gap-1 rounded-md border border-white/10 bg-white/[.05] px-2 py-1 text-[10px] font-semibold text-white/65 transition hover:bg-white/[.1] hover:text-white"><RotateCcw className="h-2.5 w-2.5" /> Reset</button>
 
           {isOffline && (
             <span className="flex items-center gap-1 text-amber-400 font-semibold">
@@ -126,11 +133,11 @@ export const Header = () => {
       </div>
 
       {/* ── Main nav ────────────────────────────────────────────────────── */}
-      <header className={`
+      <header className={`primary-nav
         sticky top-0 z-50 transition-all duration-300
         ${scrolled
-          ? 'bg-[rgba(8,10,15,0.92)] backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.6)]'
-          : 'bg-[#090b10] border-b border-[rgba(255,255,255,0.06)]'
+          ? 'bg-[rgba(11,37,39,0.96)] backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.24)]'
+          : 'bg-[#0B2527] border-b border-[rgba(255,255,255,0.06)]'
         }
       `}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -141,8 +148,7 @@ export const Header = () => {
               onClick={() => { setActiveSection('overview'); setMobileOpen(false); }}
               className="flex items-center gap-3 group shrink-0"
             >
-              <div className="relative w-9 h-9 rounded-xl overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-red-600 via-red-700 to-red-900" />
+              <div className="cc-logo-mark relative w-9 h-9 rounded-xl overflow-hidden">
                 <div className="absolute inset-0 bg-[noise] opacity-30" />
                 <Activity className="absolute inset-0 m-auto w-5 h-5 text-white drop-shadow-sm" />
                 {/* Pulse ring when there's an active emergency */}
@@ -152,7 +158,7 @@ export const Header = () => {
               </div>
               <div className="hidden sm:block">
                 <span className="text-white font-black text-lg tracking-tight leading-none">
-                  CRISIS<span className="text-red-500">CARE</span>
+                  CRISIS<span className="cc-brand-accent">CARE</span>
                 </span>
                 <div className="text-[10px] text-[rgba(255,255,255,0.3)] font-medium tracking-widest uppercase leading-none mt-0.5">
                   Real-Time Emergency Routing
@@ -193,7 +199,7 @@ export const Header = () => {
                     )}
                     {/* Active underline */}
                     {isActive && (
-                      <span className="absolute bottom-0 left-2 right-2 h-px bg-gradient-to-r from-transparent via-red-500 to-transparent" />
+                      <span className="cc-nav-indicator absolute bottom-0 left-2 right-2 h-px" />
                     )}
                   </button>
                 );
@@ -224,7 +230,7 @@ export const Header = () => {
 
         {/* Mobile Nav Drawer */}
         {mobileOpen && (
-          <div className="md:hidden border-t border-[rgba(255,255,255,0.07)] bg-[#0d0f14] animate-slide-up">
+          <div className="cc-mobile-nav md:hidden border-t border-[rgba(255,255,255,0.07)] bg-[#0d0f14] animate-slide-up">
             <div className="max-w-7xl mx-auto px-4 py-2 space-y-0.5">
               {NAV_ITEMS.map(item => {
                 const Icon = item.icon;

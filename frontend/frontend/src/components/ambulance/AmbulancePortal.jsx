@@ -18,8 +18,8 @@ const OptionGroup = ({ options, value, onChange }) => (
         onClick={() => onChange(opt.id)}
         className={`py-2.5 px-2 rounded-xl border text-xs font-bold transition text-center
           ${value === opt.id
-            ? 'border-red-700/70 bg-red-950/40 text-red-300'
-            : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.07)] hover:text-white'
+            ? 'border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--text-primary)]'
+            : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]'
           }
         `}
       >

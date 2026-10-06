@@ -81,14 +81,26 @@ const CrisisCareContext = createContext(null);
 
 export const CrisisCareProvider = ({ children }) => {
   // ── Theme ──────────────────────────────────────────────────────────────────
-  const [theme, setTheme] = useState(() => localStorage.getItem('cc_theme') || 'red');
-  const toggleTheme = () => {
-    setTheme(prev => {
-      const next = prev === 'red' ? 'teal' : 'red';
-      localStorage.setItem('cc_theme', next);
-      return next;
-    });
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem('crisis-care-theme') === 'coastal-teal' ? 'coastal-teal' : 'coral-slate'; }
+    catch { return 'coral-slate'; }
+  });
+  const chooseTheme = next => {
+    const normalized = next === 'coastal-teal' ? 'coastal-teal' : 'coral-slate';
+    setTheme(normalized);
+    try { localStorage.setItem('crisis-care-theme', normalized); } catch { /* Keep the session choice in memory. */ }
   };
+  const resetTheme = () => {
+    setTheme('coral-slate');
+    try { localStorage.removeItem('crisis-care-theme'); } catch { /* Keep the session choice in memory. */ }
+  };
+  useEffect(() => {
+    const syncTheme = event => {
+      if (event.key === 'crisis-care-theme') setTheme(event.newValue === 'coastal-teal' ? 'coastal-teal' : 'coral-slate');
+    };
+    window.addEventListener('storage', syncTheme);
+    return () => window.removeEventListener('storage', syncTheme);
+  }, []);
 
   // ── Backend connectivity ───────────────────────────────────────────────────
   const [backendOnline, setBackendOnline] = useState(null); // null = checking
@@ -729,7 +741,7 @@ export const CrisisCareProvider = ({ children }) => {
   return (
     <CrisisCareContext.Provider value={{
       // Theme
-      theme, toggleTheme,
+      theme, chooseTheme, resetTheme,
 
       // Backend state
       backendOnline, hospitalsLoading, inventoryLoading,

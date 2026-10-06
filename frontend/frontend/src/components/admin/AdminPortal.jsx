@@ -26,11 +26,8 @@ export const AdminPortal = () => {
     logoutAdmin, 
     auditLogs, 
     hospitals, 
-    showToast, 
-    theme 
+    showToast,
   } = useCrisisCare();
-  
-  const isRed = theme === 'red';
   const [adminIdInput, setAdminIdInput] = useState('adm_shivam_027');
   const [passwordInput, setPasswordInput] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);

@@ -71,12 +71,6 @@ const Stage = ({ num, label, desc, status, icon: Icon }) => {
 const CategoryBtn = ({ cat, selected, onClick }) => {
   const Icon = cat.icon;
   const isSelected = selected === cat.id;
-  const colorMap = {
-    red:   { ring: 'ring-red-600/50 bg-red-950/40 border-red-700/60', icon: 'bg-red-600 text-white', text: 'text-red-300' },
-    amber: { ring: 'ring-amber-600/40 bg-amber-950/30 border-amber-700/50', icon: 'bg-amber-600 text-white', text: 'text-amber-300' },
-    slate: { ring: 'ring-slate-600/40 bg-slate-900/40 border-slate-600/40', icon: 'bg-slate-600 text-white', text: 'text-slate-300' },
-  };
-  const c = colorMap[cat.color] || colorMap.slate;
   return (
     <button
       type="button"
@@ -84,17 +78,17 @@ const CategoryBtn = ({ cat, selected, onClick }) => {
       className={`
         relative p-3 rounded-2xl border text-left transition-all duration-150 flex flex-col justify-between gap-2 card-press
         ${isSelected
-          ? `ring-2 ${c.ring} shadow-md`
-          : 'border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.12)]'
+          ? 'ring-2 ring-[var(--primary)] bg-[var(--primary-soft)] border-[var(--primary)] shadow-sm'
+          : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)]'
         }
       `}
     >
-      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? c.icon : 'bg-[rgba(255,255,255,0.07)] text-[rgba(255,255,255,0.5)]'}`}>
+      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? 'bg-[var(--primary)] text-white' : 'bg-[var(--surface-muted)] text-[var(--text-secondary)]'}`}>
         <Icon className="w-4 h-4" />
       </div>
       <div>
-        <span className={`block text-xs font-bold line-clamp-1 ${isSelected ? c.text : 'text-[rgba(255,255,255,0.7)]'}`}>{cat.label}</span>
-        <span className="text-[10px] text-[rgba(255,255,255,0.3)] leading-tight line-clamp-2 mt-0.5">{cat.desc}</span>
+        <span className="block text-xs font-bold text-[var(--text-primary)] line-clamp-1">{cat.label}</span>
+        <span className="text-[10px] text-[var(--text-secondary)] leading-tight line-clamp-2 mt-0.5">{cat.desc}</span>
       </div>
       {isSelected && (
         <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.7)]" />
@@ -445,7 +439,7 @@ export const ClientPortal = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-red-700 via-red-600 to-red-800 transition-transform group-hover:scale-105" />
               <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)] translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite]" />
               
-              <div className="relative z-10 flex items-center gap-3 text-white">
+              <div className="cc-emergency-cta relative z-10 flex items-center gap-3 text-white">
                 {isSubmitting ? (
                   <>
                     <div className="w-5 h-5 border-[3px] border-white/40 border-t-white rounded-full animate-spin" />

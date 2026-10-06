@@ -10,14 +10,14 @@ import { HospitalPortal } from './components/hospital/HospitalPortal';
 import { AdminPortal } from './components/admin/AdminPortal';
 
 function AppContent() {
-  const { activeSection } = useCrisisCare();
+  const { activeSection, theme } = useCrisisCare();
 
   return (
-    <div className="min-h-screen flex flex-col selection:bg-blue-200">
+    <div data-theme={theme} className="app-shell min-h-screen flex flex-col">
       <OfflineBanner />
       <Header />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="app-main flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {activeSection === 'overview'  && <MainDashboard />}
         {activeSection === 'client'    && <ClientPortal />}
         {activeSection === 'ambulance' && <AmbulancePortal />}
