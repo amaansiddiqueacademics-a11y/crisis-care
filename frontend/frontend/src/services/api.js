@@ -72,6 +72,19 @@ async function routingFetch(path, opts = {}) {
  * POST /admin/auth/login
  * @returns {{ token: string, hospital_id: number, hospital_name: string }}
  */
+export async function loginAmbulanceApi(badgeId, password) {
+  const res = await fetch(`${GATEWAY}/admin/auth/ambulance-login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ badgeId, password }),
+  });
+  if (res.status === 401) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error || 'Invalid credentials');
+  }
+  return parseResponse(res);
+}
+
 export async function login(username, password) {
   const res = await fetch(`${GATEWAY}/admin/auth/login`, {
     method: 'POST',

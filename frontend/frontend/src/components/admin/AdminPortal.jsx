@@ -139,7 +139,7 @@ export const AdminPortal = () => {
       log.hospitalName.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesHosp = 
-      selectedHospitalFilter === 'ALL' || log.hospitalId === selectedHospitalFilter;
+      selectedHospitalFilter === 'ALL' || String(log.hospitalId) === String(selectedHospitalFilter);
 
     return matchesSearch && matchesHosp;
   });
