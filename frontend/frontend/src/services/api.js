@@ -257,3 +257,7 @@ export async function fetchResourceChanges({ resource_type, hospital_id, limit }
 export async function fetchAttendants() {
   return gatewayFetch('/admin/attendants');
 }
+
+export async function fetchAuditLogs() {
+  return gatewayFetch('/admin/audit-logs');
+}

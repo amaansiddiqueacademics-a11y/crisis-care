@@ -132,6 +132,7 @@ export const CrisisCareProvider = ({ children }) => {
   const [attendantsLoading, setAttendantsLoading] = useState(false);
   const [resourceChanges, setResourceChanges] = useState([]);
   const [resourceChangesLoading, setResourceChangesLoading] = useState(false);
+  const [realAuditLogs, setRealAuditLogs] = useState([]);
   const [selectedHospitalForAmbulance, setSelectedHospitalForAmbulance] = useState(null);
 
   // ── Hospital inventory (post-login, real) ──────────────────────────────────
@@ -527,6 +528,15 @@ export const CrisisCareProvider = ({ children }) => {
     }
   }, []);
 
+  const fetchRealAuditLogs = useCallback(async () => {
+    try {
+      const data = await api.fetchAuditLogs();
+      setRealAuditLogs(data.logs || []);
+    } catch (err) {
+      console.warn('[Admin] fetchAuditLogs failed:', err.message);
+    }
+  }, []);
+
   // ── Citizen Emergency Report ───────────────────────────────────────────────
   const reportEmergency = useCallback(async (reportData) => {
     const incidentId = `inc-${Date.now().toString().slice(-6)}`;
@@ -816,7 +826,7 @@ export const CrisisCareProvider = ({ children }) => {
       // Admin extras
       liveAttendants, attendantsLoading,
       resourceChanges, resourceChangesLoading,
-      fetchAdminResourceChanges, fetchLiveAttendants,
+      fetchAdminResourceChanges, fetchLiveAttendants, realAuditLogs, fetchRealAuditLogs,
 
       // Citizen SOS
       reportEmergency, cancelCitizenIncident, startNewCitizenReport,

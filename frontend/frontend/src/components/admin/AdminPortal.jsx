@@ -157,7 +157,7 @@ function useRotatingAttendants(raw) {
 
     // Each attendant gets its own random interval between 8000–20000ms
     const timers = raw.map((_, i) => {
-      const delay = 8000 + Math.floor(Math.random() * 12000);
+      const delay = 900000 + Math.floor(Math.random() * 60000); // ~15 mins
       return setInterval(() => {
         setAttendants(prev => {
           const next = [...prev];
@@ -178,6 +178,12 @@ function useRotatingAttendants(raw) {
   return attendants;
 }
 const AttendantMapPanel = ({ attendants: rawAttendants, loading, onRefresh }) => {
+    useEffect(() => {
+    if (adminAuth && activeTab === 'logs') {
+      fetchRealAuditLogs();
+    }
+  }, [adminAuth, activeTab, fetchRealAuditLogs]);
+
   // Live-rotating statuses — each attendant cycles independently every 8–20s
   const attendants = useRotatingAttendants(rawAttendants);
   const [selectedAttendant, setSelectedAttendant] = useState(null);
@@ -802,6 +808,8 @@ export const AdminPortal = () => {
     resourceChangesLoading,
     fetchAdminResourceChanges,
     fetchLiveAttendants,
+    realAuditLogs,
+    fetchRealAuditLogs,
   } = useCrisisCare();
 
   const [activeTab, setActiveTab] = useState('resources');
@@ -840,11 +848,14 @@ export const AdminPortal = () => {
   });
 
   const exportAuditCSV = () => {
-    const headers = ['Log ID', 'Timestamp', 'Date', 'Hospital', 'Admin', 'Resource', 'Before', 'After', 'Action'];
-    const rows = filteredAuditLogs.map(l => [
-      l.id, l.timestamp, l.date, `"${l.hospitalName}"`, `"${l.adminName}"`,
-      `"${l.resourceType}"`, l.previousQty, l.newQty, `"${l.action}"`,
-    ]);
+    const headers = ['Log ID', 'Timestamp', 'Hospital', 'Admin', 'Resource', 'Before', 'After', 'Action'];
+    const rows = filteredAuditLogs.map(l => {
+      const dt = new Date(l.created_at);
+      return [
+        l.id, `"${dt.toLocaleString()}"`, `"${l.hospital_name}"`, `"${l.admin_name || 'SYSTEM'}"`,
+        `"${l.resource_type}"`, l.previous_qty, l.new_qty, `"${l.action}"`,
+      ];
+    });
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
