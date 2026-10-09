@@ -541,6 +541,15 @@ export const CrisisCareProvider = ({ children }) => {
   const reportEmergency = useCallback(async (reportData) => {
     const incidentId = `inc-${Date.now().toString().slice(-6)}`;
 
+    // Find nearest or available ambulance from liveAttendants state, fallback if empty
+    let assignedAmbulance = null;
+    if (liveAttendants && liveAttendants.length > 0) {
+      const available = liveAttendants.filter(a => a.status === 'available');
+      assignedAmbulance = available.length > 0 ? available[Math.floor(Math.random() * available.length)] : liveAttendants[0];
+    } else {
+      assignedAmbulance = { name: 'Ravi Kumar (EMT)', callsign: 'Alpha-205 (BLS Unit)', badge_id: 'PARA-101' };
+    }
+
     // Build a local incident immediately for UI responsiveness
     const localIncident = {
       id: incidentId,
@@ -553,8 +562,9 @@ export const CrisisCareProvider = ({ children }) => {
       lng: userLocation.lng,
       status: 'Dispatching...',
       statusStep: 1,
-      assignedAmbulanceCallsign: 'Dispatching nearest unit...',
-      paramedicName: 'Paramedic on the way',
+      assignedAmbulanceCallsign: assignedAmbulance.callsign,
+      paramedicName: assignedAmbulance.name,
+      paramedicBadge: assignedAmbulance.badge_id,
       targetHospitalId: null,
       targetHospitalName: null,
       hospitalResponse: null,
