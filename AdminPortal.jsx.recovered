@@ -22,14 +22,6 @@ import {
   Users,
   ChevronDown,
   X,
-  Download,
-  Phone,
-  Mail,
-  MapPinned,
-  Ambulance,
-  BadgeCheck,
-  TrendingUp,
-  Zap,
 } from 'lucide-react';
 import {
   MapContainer,
@@ -121,182 +113,59 @@ const STATUS_BADGE = {
   returning:  { label: 'Returning',  cls: 'bg-amber-500/20 text-amber-300 border border-amber-500/40' },
 };
 
-// getMumbaiZone — prefers the zone label returned by the API (set server-side);
-// falls back to lat-based bucket only when zone is absent (offline/mock data).
-const getMumbaiZone = (lat, lng, zone) => {
-  if (zone) return zone;
-  if (lat > 19.22)  return 'Dahisar / Mira Road';
-  if (lat > 19.19)  return 'Kandivali / Borivali';
-  if (lat > 19.15)  return 'Goregaon / Malad';
-  if (lat > 19.10)  return 'Andheri East / Kurla';
-  if (lat > 19.07)  return 'Santacruz / Vile Parle';
-  if (lat > 19.04)  return 'Bandra / Khar';
-  if (lat > 19.01)  return 'Mahim / Worli';
-  if (lat > 18.99)  return 'Dadar / Parel';
-  if (lat > 18.95)  return 'Mazgaon / Byculla';
-  if (lat > 18.93)  return 'Fort / Churchgate';
-  return 'Colaba / Nariman Point';
-};
-
-// ── Live attendant status rotation ───────────────────────────────────────────
-// Each attendant's status randomly cycles every 8–15 seconds independently,
-// simulating real-world dispatches: someone responding gets freed → available,
-// someone available gets dispatched → responding, etc.
-const STATUSES = ['responding', 'available', 'returning'];
-function useRotatingAttendants(raw) {
-  const [attendants, setAttendants] = React.useState(() =>
-    raw.map((a, i) => ({ ...a, status: STATUSES[i % 3] }))
-  );
-  const rawRef = React.useRef(raw);
-  rawRef.current = raw;
-
-  React.useEffect(() => {
-    if (!raw || raw.length === 0) return;
-    // Seed initial statuses from the raw data (server provides initial value)
-    setAttendants(raw.map((a) => ({ ...a })));
-
-    // Each attendant gets its own random interval between 8000–20000ms
-    const timers = raw.map((_, i) => {
-      const delay = 8000 + Math.floor(Math.random() * 12000);
-      return setInterval(() => {
-        setAttendants(prev => {
-          const next = [...prev];
-          if (!next[i]) return prev;
-          const currentIdx = STATUSES.indexOf(next[i].status);
-          // Weighted random: 50% chance advance, 50% chance random jump
-          const nextStatus = Math.random() > 0.5
-            ? STATUSES[(currentIdx + 1) % 3]
-            : STATUSES[Math.floor(Math.random() * 3)];
-          next[i] = { ...next[i], status: nextStatus, last_seen: new Date().toISOString() };
-          return next;
-        });
-      }, delay);
-    });
-    return () => timers.forEach(clearInterval);
-  }, [raw.length]);
-
-  return attendants;
-}
-const AttendantMapPanel = ({ attendants: rawAttendants, loading, onRefresh }) => {
-  // Live-rotating statuses — each attendant cycles independently every 8–20s
-  const attendants = useRotatingAttendants(rawAttendants);
+// ── Ambulance Live Map Panel ──────────────────────────────────────────────────
+const AttendantMapPanel = ({ attendants, loading, onRefresh }) => {
   const [selectedAttendant, setSelectedAttendant] = useState(null);
-  const [statusFilter, setStatusFilter]           = useState('ALL');
-  const [searchQ, setSearchQ]                     = useState('');
-
-  const filtered = attendants.filter(a => {
-    const matchStatus = statusFilter === 'ALL' || a.status === statusFilter;
-    const matchSearch = !searchQ || a.name.toLowerCase().includes(searchQ.toLowerCase()) || a.badge_id.toLowerCase().includes(searchQ.toLowerCase());
-    return matchStatus && matchSearch;
-  });
-
-  // Summary counts
-  const counts = { responding: 0, available: 0, returning: 0 };
-  attendants.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
-
-  // Export attendant list as CSV
-  const exportCSV = useCallback(() => {
-    const headers = ['Badge ID', 'Name', 'Callsign', 'Email', 'Assigned Ambulance', 'Status', 'Lat', 'Lng', 'Last Seen', 'Mumbai Zone'];
-    const rows = attendants.map(a => [
-      a.badge_id, `"${a.name}"`, `"${a.callsign}"`, a.email || '',
-      a.assigned_ambulance_id, a.status,
-      a.lat, a.lng,
-      `"${a.last_seen ? new Date(a.last_seen).toLocaleString() : ''}"`,
-      `"${getMumbaiZone(a.lat, a.lng, a.zone)}"`,
-    ]);
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `mumbai-paramedics-live-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [attendants]);
 
   return (
     <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] overflow-hidden">
       {/* Header */}
-      <div className="p-5 border-b border-[rgba(255,255,255,0.07)]">
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-          <div>
-            <h3 className="font-black text-base sm:text-lg flex items-center gap-2 text-white">
-              <Truck className="w-5 h-5 text-amber-400" />
-              Live Ambulance Attendants — Mumbai
-            </h3>
-            <p className="text-xs text-[rgba(255,255,255,0.4)]">
-              Real-time location of all active paramedics across Mumbai zones
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={exportCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-900/30 hover:bg-amber-800/50 border border-amber-700/40 text-xs font-bold text-amber-300 hover:text-white transition"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Export CSV
-            </button>
-            <button
-              onClick={onRefresh}
-              disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)] text-xs font-semibold text-white transition disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-          </div>
+      <div className="p-5 border-b border-[rgba(255,255,255,0.07)] flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="font-black text-base sm:text-lg flex items-center gap-2 text-white">
+            <Truck className="w-5 h-5 text-amber-400" />
+            Live Ambulance Attendants
+          </h3>
+          <p className="text-xs text-[rgba(255,255,255,0.4)]">
+            Real-time location of all active paramedics
+          </p>
         </div>
-
-        {/* Status summary pills */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {[
-            { key: 'ALL',        label: `All (${attendants.length})`,         cls: 'bg-[rgba(255,255,255,0.06)] border-[rgba(255,255,255,0.15)] text-white' },
-            { key: 'responding', label: `🚨 Responding (${counts.responding})`, cls: 'bg-red-900/30 border-red-700/40 text-red-300' },
-            { key: 'available',  label: `✓ Available (${counts.available})`,   cls: 'bg-emerald-900/30 border-emerald-700/40 text-emerald-300' },
-            { key: 'returning',  label: `↩ Returning (${counts.returning})`,   cls: 'bg-amber-900/30 border-amber-700/40 text-amber-300' },
-          ].map(f => (
-            <button
-              key={f.key}
-              onClick={() => setStatusFilter(f.key)}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold border transition ${f.cls} ${statusFilter === f.key ? 'ring-2 ring-white/20' : 'opacity-70 hover:opacity-100'}`}
-            >
-              {f.label}
-            </button>
-          ))}
-          <div className="relative ml-auto">
-            <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-2" />
-            <input
-              type="text"
-              value={searchQ}
-              onChange={e => setSearchQ(e.target.value)}
-              placeholder="Search name / badge…"
-              style={{ color: '#fff', backgroundColor: 'rgba(255,255,255,0.08)', WebkitTextFillColor: '#fff' }}
-              className="pl-7 pr-3 py-1 text-[11px] font-semibold rounded-lg border border-[rgba(255,255,255,0.12)] outline-none focus:border-amber-500/60 w-44"
-            />
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            {attendants.length} Active
+          </span>
+          <button
+            onClick={onRefresh}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)] text-xs font-semibold text-white transition disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3">
         {/* Attendant list */}
-        <div className="lg:col-span-1 border-r border-[rgba(255,255,255,0.07)] max-h-[520px] overflow-y-auto">
-          {loading && filtered.length === 0 ? (
+        <div className="lg:col-span-1 border-r border-[rgba(255,255,255,0.07)] max-h-[500px] overflow-y-auto">
+          {loading && attendants.length === 0 ? (
             <div className="flex items-center justify-center py-16 text-xs text-[rgba(255,255,255,0.4)]">
               <RefreshCw className="w-4 h-4 animate-spin mr-2" /> Loading attendants…
             </div>
-          ) : filtered.length === 0 ? (
+          ) : attendants.length === 0 ? (
             <div className="py-16 text-center text-xs text-[rgba(255,255,255,0.35)]">
-              No attendants match your filter.
+              No attendants found in database.
             </div>
           ) : (
-            filtered.map(a => {
+            attendants.map(a => {
               const s = STATUS_BADGE[a.status] || STATUS_BADGE.available;
               const isSelected = selectedAttendant?.badge_id === a.badge_id;
               return (
                 <button
                   key={a.badge_id}
                   onClick={() => setSelectedAttendant(isSelected ? null : a)}
-                  className={`w-full text-left p-4 border-b border-[rgba(255,255,255,0.05)] transition hover:bg-[rgba(255,255,255,0.04)] ${isSelected ? 'bg-amber-900/10 border-l-2 border-l-amber-500' : ''}`}
+                  className={`w-full text-left p-4 border-b border-[rgba(255,255,255,0.05)] transition hover:bg-[rgba(255,255,255,0.04)] ${isSelected ? 'bg-amber-900/10' : ''}`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-black
@@ -305,35 +174,17 @@ const AttendantMapPanel = ({ attendants: rawAttendants, loading, onRefresh }) =>
                       :                             'bg-amber-900/40 text-amber-300 border border-amber-700/50'}`}>
                       {a.status === 'responding' ? '🚨' : a.status === 'available' ? '✓' : '↩'}
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0">
                       <div className="text-xs font-bold text-white truncate">{a.name}</div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] font-mono text-[rgba(255,255,255,0.4)]">{a.badge_id}</span>
-                        <span className="text-[9px] text-[rgba(255,255,255,0.25)]">•</span>
-                        <span className="text-[10px] text-[rgba(255,255,255,0.35)] truncate">{a.callsign}</span>
-                      </div>
+                      <div className="text-[10px] font-mono text-[rgba(255,255,255,0.4)]">{a.badge_id}</div>
+                      <div className="text-[10px] text-[rgba(255,255,255,0.35)]">{a.callsign}</div>
                     </div>
                     <span className={`ml-auto shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${s.cls}`}>
                       {s.label}
                     </span>
                   </div>
-                  {/* Zone + email row */}
-                  <div className="mt-1.5 ml-12 flex items-center gap-2 text-[10px] text-[rgba(255,255,255,0.3)]">
-                    <MapPinned className="w-2.5 h-2.5 shrink-0" />
-                    <span className="truncate">{getMumbaiZone(a.lat, a.lng)}</span>
-                    {a.email && (
-                      <>
-                        <span className="text-[rgba(255,255,255,0.15)]">•</span>
-                        <Mail className="w-2.5 h-2.5 shrink-0" />
-                        <span className="truncate">{a.email}</span>
-                      </>
-                    )}
-                  </div>
-                  {/* Selected: show last seen */}
-                  {isSelected && (
-                    <div className="mt-2 ml-12 text-[10px] text-amber-400 font-semibold">
-                      Last seen: {a.last_seen ? new Date(a.last_seen).toLocaleTimeString() : '—'}
-                    </div>
+                  {a.email && (
+                    <div className="mt-1.5 ml-12 text-[10px] text-[rgba(255,255,255,0.3)] truncate">{a.email}</div>
                   )}
                 </button>
               );
@@ -342,7 +193,7 @@ const AttendantMapPanel = ({ attendants: rawAttendants, loading, onRefresh }) =>
         </div>
 
         {/* Map */}
-        <div className="lg:col-span-2" style={{ height: '520px' }}>
+        <div className="lg:col-span-2" style={{ height: '500px' }}>
           {attendants.length > 0 ? (
             <MapContainer
               center={[19.076, 72.8777]}
@@ -351,14 +202,14 @@ const AttendantMapPanel = ({ attendants: rawAttendants, loading, onRefresh }) =>
               style={{ width: '100%', height: '100%' }}
               zoomControl={false}
             >
-              <FitBounds attendants={filtered.length > 0 ? filtered : attendants} />
+              <FitBounds attendants={attendants} />
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 subdomains="abc"
                 maxZoom={19}
               />
-              {(filtered.length > 0 ? filtered : attendants).map(a => (
+              {attendants.map(a => (
                 <Marker
                   key={a.badge_id}
                   position={[a.lat, a.lng]}
@@ -366,14 +217,11 @@ const AttendantMapPanel = ({ attendants: rawAttendants, loading, onRefresh }) =>
                   eventHandlers={{ click: () => setSelectedAttendant(a) }}
                 >
                   <Popup>
-                    <div style={{ fontFamily: 'system-ui, sans-serif', minWidth: 180 }}>
+                    <div style={{ fontFamily: 'system-ui, sans-serif', minWidth: 160 }}>
                       <strong style={{ color: '#1D1D1F', display: 'block', marginBottom: 4 }}>{a.name}</strong>
                       <span style={{ fontSize: 11, color: '#555', display: 'block' }}>{a.callsign}</span>
                       <span style={{ fontSize: 11, color: '#555', display: 'block' }}>ID: {a.badge_id}</span>
                       {a.email && <span style={{ fontSize: 10, color: '#888', display: 'block' }}>{a.email}</span>}
-                      <span style={{ fontSize: 10, color: '#888', display: 'block', marginTop: 2 }}>
-                        📍 {getMumbaiZone(a.lat, a.lng)}
-                      </span>
                       <span style={{
                         display: 'inline-block', marginTop: 6, padding: '2px 8px', borderRadius: 20,
                         fontSize: 10, fontWeight: 700,
@@ -396,7 +244,7 @@ const AttendantMapPanel = ({ attendants: rawAttendants, loading, onRefresh }) =>
         </div>
       </div>
 
-      {/* Legend + footer */}
+      {/* Legend */}
       <div className="px-4 py-2.5 border-t border-[rgba(255,255,255,0.07)] flex flex-wrap items-center gap-4 text-[11px] text-[rgba(255,255,255,0.5)]">
         {Object.entries(STATUS_BADGE).map(([key, val]) => (
           <span key={key} className="flex items-center gap-1.5">
@@ -406,7 +254,7 @@ const AttendantMapPanel = ({ attendants: rawAttendants, loading, onRefresh }) =>
             {val.label}
           </span>
         ))}
-        <span className="ml-auto">Showing {filtered.length} / {attendants.length} • Auto-refresh every 30s</span>
+        <span className="ml-auto">Auto-refresh every 30s</span>
       </div>
     </div>
   );
@@ -440,27 +288,16 @@ const ResourceChangesTable = ({
     );
   });
 
-  // Derived summary stats for the mini-cards
-  const totalResources  = (resourceChanges || []).length;
-  const criticalCount   = (resourceChanges || []).filter(r => r.quantity_available === 0).length;
-  const lowCount        = (resourceChanges || []).filter(r => r.quantity_available > 0 && r.quantity_available <= 3).length;
-  const healthyCount    = totalResources - criticalCount - lowCount;
-
   // ── CSV export ──────────────────────────────────────────────────────────────
   const exportCSV = useCallback(() => {
-    const headers = ['Hospital', 'Resource Type', 'Quantity Available', 'Last Updated', 'Hospital ID', 'Status'];
-    const rows = filtered.map(r => {
-      const qty = r.quantity_available;
-      const status = qty === 0 ? 'Critical' : qty <= 3 ? 'Low' : 'Healthy';
-      return [
-        `"${r.hospital_name}"`,
-        `"${RESOURCE_LABELS[r.resource_type] || r.resource_type}"`,
-        qty,
-        `"${r.last_updated_at ? new Date(r.last_updated_at).toLocaleString() : ''}"`,
-        r.hospital_id,
-        status,
-      ];
-    });
+    const headers = ['Hospital', 'Resource Type', 'Quantity Available', 'Last Updated', 'Hospital ID'];
+    const rows = filtered.map(r => [
+      `"${r.hospital_name}"`,
+      `"${RESOURCE_LABELS[r.resource_type] || r.resource_type}"`,
+      r.quantity_available,
+      `"${r.last_updated_at ? new Date(r.last_updated_at).toLocaleString() : ''}"`,
+      r.hospital_id,
+    ]);
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url  = URL.createObjectURL(blob);
@@ -472,222 +309,195 @@ const ResourceChangesTable = ({
   }, [filtered]);
 
   return (
-    <div className="space-y-4">
-      {/* Mini summary cards */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="glass-dark rounded-xl border border-[rgba(255,255,255,0.07)] p-3 flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+    <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] overflow-hidden">
+      {/* Header */}
+      <div className="p-5 border-b border-[rgba(255,255,255,0.07)]">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="text-lg font-black text-emerald-400">{healthyCount}</div>
-            <div className="text-[10px] text-[rgba(255,255,255,0.4)] font-semibold uppercase">Healthy</div>
+            <h3 className="font-black text-base sm:text-lg flex items-center gap-2 text-white">
+              <History className="w-5 h-5 text-indigo-400" />
+              Live Hospital Resource Status
+            </h3>
+            <p className="text-xs text-[rgba(255,255,255,0.4)]">
+              Latest quantities across all hospitals — updated in real-time via SSE
+            </p>
           </div>
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-900/30 hover:bg-indigo-800/50 border border-indigo-700/40 text-xs font-bold text-indigo-300 hover:text-white transition"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            Export CSV
+          </button>
         </div>
-        <div className="glass-dark rounded-xl border border-[rgba(255,255,255,0.07)] p-3 flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
-          <div>
-            <div className="text-lg font-black text-amber-400">{lowCount}</div>
-            <div className="text-[10px] text-[rgba(255,255,255,0.4)] font-semibold uppercase">Low Stock</div>
+
+        {/* Filters row */}
+        <div className="flex flex-wrap items-center gap-3 mt-4">
+          {/* Text search */}
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Search hospital, resource…"
+              style={{ color: '#0f172a', backgroundColor: '#ffffff', WebkitTextFillColor: '#0f172a' }}
+              className="pl-8 pr-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 outline-none focus:border-indigo-500 w-52 shadow-xs"
+            />
           </div>
-        </div>
-        <div className="glass-dark rounded-xl border border-[rgba(255,255,255,0.07)] p-3 flex items-center gap-3">
-          <Zap className="w-5 h-5 text-red-400 shrink-0" />
-          <div>
-            <div className="text-lg font-black text-red-400">{criticalCount}</div>
-            <div className="text-[10px] text-[rgba(255,255,255,0.4)] font-semibold uppercase">Critical</div>
-          </div>
+
+          {/* Hospital filter */}
+          <select
+            value={hospitalFilter}
+            onChange={e => setHospitalFilter(e.target.value)}
+            style={{ color: '#0f172a', backgroundColor: '#ffffff', WebkitTextFillColor: '#0f172a' }}
+            className="text-xs font-bold border border-slate-300 rounded-lg px-2.5 py-1.5 outline-none focus:border-indigo-500 shadow-xs max-w-[200px]"
+          >
+            <option value="ALL" style={{ color: '#0f172a' }}>All Hospitals</option>
+            {hospitals.map(h => (
+              <option key={h.id} value={h.id} style={{ color: '#0f172a' }}>{h.name}</option>
+            ))}
+          </select>
+
+          {/* Resource type filter */}
+          <select
+            value={resourceFilter}
+            onChange={e => setResourceFilter(e.target.value)}
+            style={{ color: '#0f172a', backgroundColor: '#ffffff', WebkitTextFillColor: '#0f172a' }}
+            className="text-xs font-bold border border-slate-300 rounded-lg px-2.5 py-1.5 outline-none focus:border-indigo-500 shadow-xs"
+          >
+            <option value="ALL" style={{ color: '#0f172a' }}>All Resource Types</option>
+            <optgroup label="── Beds">
+              <option value="icu_bed">ICU Bed</option>
+              <option value="neonatal_icu_bed">NICU Bed</option>
+              <option value="general_bed">General Bed</option>
+            </optgroup>
+            <optgroup label="── Equipment">
+              <option value="ventilator">Ventilator</option>
+              <option value="oxygen_cylinder">Oxygen Cylinder</option>
+              <option value="equipment_ct_scanner">CT Scanner</option>
+              <option value="equipment_mri_machine">MRI Machine</option>
+              <option value="equipment_defibrillator">Defibrillator</option>
+              <option value="dialysis_machine">Dialysis Machine</option>
+            </optgroup>
+            <optgroup label="── Doctors">
+              <option value="specialist_trauma_surgeon">Trauma Surgeon</option>
+              <option value="specialist_cardiologist">Cardiologist</option>
+              <option value="specialist_neurologist">Neurologist</option>
+              <option value="specialist_orthopaedic">Orthopaedic</option>
+              <option value="specialist_anaesthesiologist">Anaesthesiologist</option>
+            </optgroup>
+            <optgroup label="── Blood">
+              <option value="blood_o_negative">Blood O−</option>
+              <option value="blood_a_positive">Blood A+</option>
+              <option value="blood_b_positive">Blood B+</option>
+              <option value="blood_ab_positive">Blood AB+</option>
+            </optgroup>
+          </select>
+
+          {resourceChangesLoading && (
+            <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
+          )}
         </div>
       </div>
 
-      <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] overflow-hidden">
-        {/* Header */}
-        <div className="p-5 border-b border-[rgba(255,255,255,0.07)]">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h3 className="font-black text-base sm:text-lg flex items-center gap-2 text-white">
-                <History className="w-5 h-5 text-indigo-400" />
-                Live Hospital Resource Status — Mumbai
-              </h3>
-              <p className="text-xs text-[rgba(255,255,255,0.4)]">
-                Latest quantities across all Mumbai hospitals — updated in real-time via SSE
-              </p>
-            </div>
-            <button
-              onClick={exportCSV}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-900/30 hover:bg-indigo-800/50 border border-indigo-700/40 text-xs font-bold text-indigo-300 hover:text-white transition"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              Export CSV
-            </button>
-          </div>
-
-          {/* Filters row */}
-          <div className="flex flex-wrap items-center gap-3 mt-4">
-            {/* Text search */}
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Search hospital, resource…"
-                style={{ color: '#0f172a', backgroundColor: '#ffffff', WebkitTextFillColor: '#0f172a' }}
-                className="pl-8 pr-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 outline-none focus:border-indigo-500 w-52 shadow-xs"
-              />
-            </div>
-
-            {/* Hospital filter */}
-            <select
-              value={hospitalFilter}
-              onChange={e => setHospitalFilter(e.target.value)}
-              style={{ color: '#0f172a', backgroundColor: '#ffffff', WebkitTextFillColor: '#0f172a' }}
-              className="text-xs font-bold border border-slate-300 rounded-lg px-2.5 py-1.5 outline-none focus:border-indigo-500 shadow-xs max-w-[200px]"
-            >
-              <option value="ALL" style={{ color: '#0f172a' }}>All Hospitals</option>
-              {hospitals.map(h => (
-                <option key={h.id} value={h.id} style={{ color: '#0f172a' }}>{h.name}</option>
-              ))}
-            </select>
-
-            {/* Resource type filter */}
-            <select
-              value={resourceFilter}
-              onChange={e => setResourceFilter(e.target.value)}
-              style={{ color: '#0f172a', backgroundColor: '#ffffff', WebkitTextFillColor: '#0f172a' }}
-              className="text-xs font-bold border border-slate-300 rounded-lg px-2.5 py-1.5 outline-none focus:border-indigo-500 shadow-xs"
-            >
-              <option value="ALL" style={{ color: '#0f172a' }}>All Resource Types</option>
-              <optgroup label="── Beds">
-                <option value="icu_bed">ICU Bed</option>
-                <option value="neonatal_icu_bed">NICU Bed</option>
-                <option value="general_bed">General Bed</option>
-              </optgroup>
-              <optgroup label="── Equipment">
-                <option value="ventilator">Ventilator</option>
-                <option value="oxygen_cylinder">Oxygen Cylinder</option>
-                <option value="equipment_ct_scanner">CT Scanner</option>
-                <option value="equipment_mri_machine">MRI Machine</option>
-                <option value="equipment_defibrillator">Defibrillator</option>
-                <option value="dialysis_machine">Dialysis Machine</option>
-              </optgroup>
-              <optgroup label="── Doctors">
-                <option value="specialist_trauma_surgeon">Trauma Surgeon</option>
-                <option value="specialist_cardiologist">Cardiologist</option>
-                <option value="specialist_neurologist">Neurologist</option>
-                <option value="specialist_orthopaedic">Orthopaedic</option>
-                <option value="specialist_anaesthesiologist">Anaesthesiologist</option>
-              </optgroup>
-              <optgroup label="── Blood">
-                <option value="blood_o_negative">Blood O−</option>
-                <option value="blood_a_positive">Blood A+</option>
-                <option value="blood_b_positive">Blood B+</option>
-                <option value="blood_ab_positive">Blood AB+</option>
-              </optgroup>
-            </select>
-
-            {resourceChangesLoading && (
-              <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
-            )}
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b font-bold uppercase tracking-wider text-[11px] bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.07)] text-[rgba(255,255,255,0.5)]">
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead className="border-b font-bold uppercase tracking-wider text-[11px] bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.07)] text-[rgba(255,255,255,0.5)]">
+            <tr>
+              <th className="py-3 px-4">Hospital</th>
+              <th className="py-3 px-4">Resource Type</th>
+              <th className="py-3 px-4 text-center">Qty Available</th>
+              <th className="py-3 px-4">Last Updated</th>
+              <th className="py-3 px-4">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[rgba(255,255,255,0.05)]">
+            {resourceChangesLoading && filtered.length === 0 ? (
               <tr>
-                <th className="py-3 px-4">Hospital</th>
-                <th className="py-3 px-4">Resource Type</th>
-                <th className="py-3 px-4 text-center">Qty Available</th>
-                <th className="py-3 px-4">Last Updated</th>
-                <th className="py-3 px-4">Status</th>
+                <td colSpan={5} className="py-10 text-center">
+                  <RefreshCw className="w-5 h-5 animate-spin text-indigo-400 mx-auto" />
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-[rgba(255,255,255,0.05)]">
-              {resourceChangesLoading && filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-10 text-center">
-                    <RefreshCw className="w-5 h-5 animate-spin text-indigo-400 mx-auto" />
-                  </td>
-                </tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-[rgba(255,255,255,0.4)] font-semibold">
-                    No matching records found.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((row, idx) => {
-                  const qty = row.quantity_available;
-                  const isCritical = qty === 0;
-                  const isLow      = qty > 0 && qty <= 3;
-                  const updatedAt  = row.last_updated_at ? new Date(row.last_updated_at) : null;
-                  const minutesAgo = updatedAt ? Math.floor((Date.now() - updatedAt.getTime()) / 60000) : null;
-                  const isStale    = minutesAgo !== null && minutesAgo > (row.staleness_threshold_minutes || 60);
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-8 text-center text-[rgba(255,255,255,0.4)] font-semibold">
+                  No matching records found.
+                </td>
+              </tr>
+            ) : (
+              filtered.map((row, idx) => {
+                const qty = row.quantity_available;
+                const isCritical = qty === 0;
+                const isLow      = qty > 0 && qty <= 3;
+                const updatedAt  = row.last_updated_at ? new Date(row.last_updated_at) : null;
+                const minutesAgo = updatedAt ? Math.floor((Date.now() - updatedAt.getTime()) / 60000) : null;
+                const isStale    = minutesAgo !== null && minutesAgo > (row.staleness_threshold_minutes || 60);
 
-                  return (
-                    <tr key={`${row.resource_id}-${idx}`} className="transition hover:bg-[rgba(255,255,255,0.02)]">
-                      <td className="py-3 px-4 font-semibold text-white max-w-[200px] truncate">
-                        {row.hospital_name}
-                      </td>
-                      <td className="py-3 px-4 text-[rgba(255,255,255,0.8)]">
-                        {RESOURCE_LABELS[row.resource_type] || row.resource_type}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className={`inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full font-black text-sm
-                          ${isCritical ? 'bg-red-500/20 text-red-300 border border-red-500/40'
-                          : isLow      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                          :              'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'}`}>
-                          {qty}
+                return (
+                  <tr key={`${row.resource_id}-${idx}`} className="transition hover:bg-[rgba(255,255,255,0.02)]">
+                    <td className="py-3 px-4 font-semibold text-white max-w-[200px] truncate">
+                      {row.hospital_name}
+                    </td>
+                    <td className="py-3 px-4 text-[rgba(255,255,255,0.8)]">
+                      {RESOURCE_LABELS[row.resource_type] || row.resource_type}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full font-black text-sm
+                        ${isCritical ? 'bg-red-500/20 text-red-300 border border-red-500/40'
+                        : isLow      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                        :              'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'}`}>
+                        {qty}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-[rgba(255,255,255,0.55)] whitespace-nowrap">
+                      {updatedAt ? (
+                        <>
+                          <div>{updatedAt.toLocaleTimeString()}</div>
+                          <div className="text-[10px] text-[rgba(255,255,255,0.3)]">
+                            {minutesAgo != null ? (minutesAgo < 1 ? 'Just now' : `${minutesAgo}m ago`) : ''}
+                          </div>
+                        </>
+                      ) : '—'}
+                    </td>
+                    <td className="py-3 px-4">
+                      {isCritical ? (
+                        <span className="badge text-[10px] bg-red-900/30 text-red-300 border border-red-700/40">
+                          <AlertTriangle className="w-2.5 h-2.5 mr-0.5" />
+                          Critical
                         </span>
-                      </td>
-                      <td className="py-3 px-4 text-[rgba(255,255,255,0.55)] whitespace-nowrap">
-                        {updatedAt ? (
-                          <>
-                            <div>{updatedAt.toLocaleTimeString()}</div>
-                            <div className="text-[10px] text-[rgba(255,255,255,0.3)]">
-                              {minutesAgo != null ? (minutesAgo < 1 ? 'Just now' : `${minutesAgo}m ago`) : ''}
-                            </div>
-                          </>
-                        ) : '—'}
-                      </td>
-                      <td className="py-3 px-4">
-                        {isCritical ? (
-                          <span className="badge text-[10px] bg-red-900/30 text-red-300 border border-red-700/40">
-                            <AlertTriangle className="w-2.5 h-2.5 mr-0.5" />
-                            Critical
-                          </span>
-                        ) : isStale ? (
-                          <span className="badge text-[10px] bg-amber-900/30 text-amber-300 border border-amber-700/40">
-                            Stale
-                          </span>
-                        ) : (
-                          <span className="badge text-[10px] bg-emerald-900/30 text-emerald-300 border border-emerald-700/40">
-                            <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
-                            Live
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                      ) : isStale ? (
+                        <span className="badge text-[10px] bg-amber-900/30 text-amber-300 border border-amber-700/40">
+                          Stale
+                        </span>
+                      ) : (
+                        <span className="badge text-[10px] bg-emerald-900/30 text-emerald-300 border border-emerald-700/40">
+                          <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
+                          Live
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
 
-        {/* Footer */}
-        <div className="p-3 border-t flex items-center justify-between text-[11px] px-4 bg-[rgba(255,255,255,0.01)] border-[rgba(255,255,255,0.07)] text-[rgba(255,255,255,0.5)]">
-          <span className="font-medium">
-            Showing {filtered.length} of {(resourceChanges || []).length} records
-          </span>
-          <button
-            onClick={exportCSV}
-            className="flex items-center gap-1 font-bold text-indigo-400 hover:text-indigo-300 transition"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            Download CSV
-          </button>
-        </div>
+      {/* Footer */}
+      <div className="p-3 border-t flex items-center justify-between text-[11px] px-4 bg-[rgba(255,255,255,0.01)] border-[rgba(255,255,255,0.07)] text-[rgba(255,255,255,0.5)]">
+        <span className="font-medium">
+          Showing {filtered.length} of {(resourceChanges || []).length} records
+        </span>
+        <button
+          onClick={exportCSV}
+          className="flex items-center gap-1 font-bold text-indigo-400 hover:text-indigo-300 transition"
+        >
+          <FileSpreadsheet className="w-3.5 h-3.5" />
+          Download CSV
+        </button>
       </div>
     </div>
   );
@@ -707,7 +517,7 @@ const AdminLogin = ({ loginAdmin }) => {
             <ShieldCheck className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-black text-white">Admin Operations Login</h1>
-          <p className="text-xs text-[rgba(255,255,255,0.4)] mt-1">Crisis Care Mumbai — Control panel for system managers only</p>
+          <p className="text-xs text-[rgba(255,255,255,0.4)] mt-1">Control panel for system managers only</p>
         </div>
 
         <form onSubmit={e => { e.preventDefault(); loginAdmin(adminIdInput, passwordInput); }} className="space-y-4">
@@ -855,91 +665,80 @@ export const AdminPortal = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Derived attendant stats
-  const respondingNow  = liveAttendants.filter(a => a.status === 'responding').length;
-  const availableNow   = liveAttendants.filter(a => a.status === 'available').length;
-
   return (
-    <div className="space-y-6 animate-fade-in bg-[#060b10] rounded-3xl p-4 sm:p-6 -mx-1 min-h-screen">
+    <div className="space-y-6 animate-fade-in">
       {/* ── Banner ──────────────────────────────────────────────────────────── */}
-      <div className="bg-[#0d1117] border border-indigo-900/50 rounded-3xl p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 shadow-lg">
+      <div className="glass-dark border border-indigo-900/40 rounded-3xl p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-900/40 border border-indigo-800/40 flex items-center justify-center">
             <ShieldCheck className="w-6 h-6 text-indigo-400" />
           </div>
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-indigo-500/50 bg-indigo-500/15 text-indigo-300">
-                Admin Panel
-              </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-amber-500/40 bg-amber-500/15 text-amber-300">
-                📍 Mumbai Operations
-              </span>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="badge border border-indigo-800/40 bg-indigo-900/30 text-indigo-300">Admin Panel</span>
             </div>
-            <h1 className="text-lg sm:text-xl font-black text-white">Crisis Care — Admin Control Centre</h1>
-            <p className="text-xs text-slate-400">
-              Logged in as <strong className="text-white">{adminAuth.name}</strong>{' '}
-              <span className="text-slate-500">({adminAuth.adminId})</span>
+            <h1 className="text-lg sm:text-xl font-black text-white">Admin Control Centre</h1>
+            <p className="text-xs text-[rgba(255,255,255,0.4)]">
+              Logged in as <strong className="text-white">{adminAuth.name}</strong> ({adminAuth.adminId})
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-emerald-800/50 bg-emerald-900/20 text-xs text-emerald-300 font-semibold">
-            <Server className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="glass-dark px-3 py-1.5 rounded-lg border border-[rgba(255,255,255,0.07)] text-xs flex items-center gap-2 text-white">
+            <Server className="w-4 h-4 text-emerald-400" />
             <span>Database: <strong className="text-emerald-400">Connected</strong></span>
           </div>
           <button
             onClick={logoutAdmin}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold text-white transition shadow-md shadow-red-900/40"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/30 hover:bg-red-600 border border-red-500/50 text-xs font-bold text-red-200 hover:text-white transition"
           >
             <LogOut className="w-3.5 h-3.5" />
-            Log Out Admin
+            <span>Log Out Admin</span>
           </button>
         </div>
       </div>
 
       {/* ── System metric cards ─────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#0d1117] rounded-2xl border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">System Uptime</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">System Uptime</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           </div>
-          <div className="text-2xl font-black text-white">99.98%</div>
-          <div className="text-[11px] text-slate-500 mt-1">SLA target: &gt; 99.9% uptime</div>
+          <div className="text-2xl font-black text-white mt-2">99.98%</div>
+          <div className="text-[11px] text-[rgba(255,255,255,0.35)] mt-1">SLA target: &gt; 99.9% uptime</div>
         </div>
-        <div className="bg-[#0d1117] rounded-2xl border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Search Speed</span>
+        <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Hospital Search Speed</span>
             <Database className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-black text-emerald-400">28 ms</div>
-          <div className="text-[11px] text-slate-500 mt-1">Hospital match (target &lt; 500ms)</div>
+          <div className="text-2xl font-black text-emerald-400 mt-2">28 ms</div>
+          <div className="text-[11px] text-[rgba(255,255,255,0.35)] mt-1">Hospital search speed (target &lt; 500ms)</div>
         </div>
-        <div className="bg-[#0d1117] rounded-2xl border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Live Paramedics</span>
+        <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Live Attendants</span>
             <Users className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-2xl font-black text-amber-400">{liveAttendants.length}</div>
-          <div className="text-[11px] text-slate-500 mt-1">
-            <span className="text-red-400 font-bold">{respondingNow}</span> responding ·{' '}
-            <span className="text-emerald-400 font-bold">{availableNow}</span> available
+          <div className="text-2xl font-black text-amber-400 mt-2">{liveAttendants.length}</div>
+          <div className="text-[11px] text-[rgba(255,255,255,0.35)] mt-1">
+            {liveAttendants.filter(a => a.status === 'responding').length} responding now
           </div>
         </div>
-        <div className="bg-[#0d1117] rounded-2xl border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mumbai Coverage</span>
-            <MapPinned className="w-4 h-4 text-indigo-400" />
+        <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Access Level</span>
+            <Lock className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-2xl font-black text-indigo-400">22 Hospitals</div>
-          <div className="text-[11px] text-slate-500 mt-1">BMC · Colaba → Borivali</div>
+          <div className="text-2xl font-black text-amber-400 mt-2">Super</div>
+          <div className="text-[11px] text-[rgba(255,255,255,0.35)] mt-1">Admin: {adminAuth.adminId}</div>
         </div>
       </div>
 
       {/* ── Tab bar ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 bg-[#0d1117] rounded-2xl border border-white/10 p-1.5">
+      <div className="flex items-center gap-1 glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] p-1.5">
         {TABS.map(tab => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;

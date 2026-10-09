@@ -34,7 +34,7 @@ function AppContent() {
                 CRISIS<span className="text-[#FF3B30]">CARE</span>
               </p>
               <p className="text-[11px] text-[#86868B] mt-0.5 font-medium">
-                Real-Time Healthcare Routing & Emergency Resource Infrastructure
+                Real-Time Healthcare Routing & Emergency Resource Infrastructure — Mumbai
               </p>
             </div>
           </div>

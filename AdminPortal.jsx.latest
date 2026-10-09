@@ -121,65 +121,18 @@ const STATUS_BADGE = {
   returning:  { label: 'Returning',  cls: 'bg-amber-500/20 text-amber-300 border border-amber-500/40' },
 };
 
-// getMumbaiZone — prefers the zone label returned by the API (set server-side);
-// falls back to lat-based bucket only when zone is absent (offline/mock data).
-const getMumbaiZone = (lat, lng, zone) => {
-  if (zone) return zone;
-  if (lat > 19.22)  return 'Dahisar / Mira Road';
-  if (lat > 19.19)  return 'Kandivali / Borivali';
-  if (lat > 19.15)  return 'Goregaon / Malad';
-  if (lat > 19.10)  return 'Andheri East / Kurla';
-  if (lat > 19.07)  return 'Santacruz / Vile Parle';
-  if (lat > 19.04)  return 'Bandra / Khar';
-  if (lat > 19.01)  return 'Mahim / Worli';
-  if (lat > 18.99)  return 'Dadar / Parel';
-  if (lat > 18.95)  return 'Mazgaon / Byculla';
-  if (lat > 18.93)  return 'Fort / Churchgate';
+// ── Mumbai zone labels for geo clustering display ─────────────────────────────
+const getMumbaiZone = (lat, lng) => {
+  if (lat > 19.12)  return 'Borivali / Kandivali';
+  if (lat > 19.08)  return 'Andheri / Jogeshwari';
+  if (lat > 19.04)  return 'Bandra / Santacruz';
+  if (lat > 19.00)  return 'Dadar / Sion';
+  if (lat > 18.96)  return 'Lower Parel / Worli';
   return 'Colaba / Nariman Point';
 };
 
-// ── Live attendant status rotation ───────────────────────────────────────────
-// Each attendant's status randomly cycles every 8–15 seconds independently,
-// simulating real-world dispatches: someone responding gets freed → available,
-// someone available gets dispatched → responding, etc.
-const STATUSES = ['responding', 'available', 'returning'];
-function useRotatingAttendants(raw) {
-  const [attendants, setAttendants] = React.useState(() =>
-    raw.map((a, i) => ({ ...a, status: STATUSES[i % 3] }))
-  );
-  const rawRef = React.useRef(raw);
-  rawRef.current = raw;
-
-  React.useEffect(() => {
-    if (!raw || raw.length === 0) return;
-    // Seed initial statuses from the raw data (server provides initial value)
-    setAttendants(raw.map((a) => ({ ...a })));
-
-    // Each attendant gets its own random interval between 8000–20000ms
-    const timers = raw.map((_, i) => {
-      const delay = 8000 + Math.floor(Math.random() * 12000);
-      return setInterval(() => {
-        setAttendants(prev => {
-          const next = [...prev];
-          if (!next[i]) return prev;
-          const currentIdx = STATUSES.indexOf(next[i].status);
-          // Weighted random: 50% chance advance, 50% chance random jump
-          const nextStatus = Math.random() > 0.5
-            ? STATUSES[(currentIdx + 1) % 3]
-            : STATUSES[Math.floor(Math.random() * 3)];
-          next[i] = { ...next[i], status: nextStatus, last_seen: new Date().toISOString() };
-          return next;
-        });
-      }, delay);
-    });
-    return () => timers.forEach(clearInterval);
-  }, [raw.length]);
-
-  return attendants;
-}
-const AttendantMapPanel = ({ attendants: rawAttendants, loading, onRefresh }) => {
-  // Live-rotating statuses — each attendant cycles independently every 8–20s
-  const attendants = useRotatingAttendants(rawAttendants);
+// ── Ambulance Live Map Panel ──────────────────────────────────────────────────
+const AttendantMapPanel = ({ attendants, loading, onRefresh }) => {
   const [selectedAttendant, setSelectedAttendant] = useState(null);
   const [statusFilter, setStatusFilter]           = useState('ALL');
   const [searchQ, setSearchQ]                     = useState('');
@@ -202,7 +155,7 @@ const AttendantMapPanel = ({ attendants: rawAttendants, loading, onRefresh }) =>
       a.assigned_ambulance_id, a.status,
       a.lat, a.lng,
       `"${a.last_seen ? new Date(a.last_seen).toLocaleString() : ''}"`,
-      `"${getMumbaiZone(a.lat, a.lng, a.zone)}"`,
+      `"${getMumbaiZone(a.lat, a.lng)}"`,
     ]);
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -860,86 +813,82 @@ export const AdminPortal = () => {
   const availableNow   = liveAttendants.filter(a => a.status === 'available').length;
 
   return (
-    <div className="space-y-6 animate-fade-in bg-[#060b10] rounded-3xl p-4 sm:p-6 -mx-1 min-h-screen">
+    <div className="space-y-6 animate-fade-in">
       {/* ── Banner ──────────────────────────────────────────────────────────── */}
-      <div className="bg-[#0d1117] border border-indigo-900/50 rounded-3xl p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 shadow-lg">
+      <div className="glass-dark border border-indigo-900/40 rounded-3xl p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-900/40 border border-indigo-800/40 flex items-center justify-center">
             <ShieldCheck className="w-6 h-6 text-indigo-400" />
           </div>
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-indigo-500/50 bg-indigo-500/15 text-indigo-300">
-                Admin Panel
-              </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-amber-500/40 bg-amber-500/15 text-amber-300">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="badge border border-indigo-800/40 bg-indigo-900/30 text-indigo-300">Admin Panel</span>
+              <span className="badge border border-amber-800/40 bg-amber-900/20 text-amber-400 text-[10px]">
                 📍 Mumbai Operations
               </span>
             </div>
             <h1 className="text-lg sm:text-xl font-black text-white">Crisis Care — Admin Control Centre</h1>
-            <p className="text-xs text-slate-400">
-              Logged in as <strong className="text-white">{adminAuth.name}</strong>{' '}
-              <span className="text-slate-500">({adminAuth.adminId})</span>
+            <p className="text-xs text-[rgba(255,255,255,0.4)]">
+              Logged in as <strong className="text-white">{adminAuth.name}</strong> ({adminAuth.adminId})
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-emerald-800/50 bg-emerald-900/20 text-xs text-emerald-300 font-semibold">
-            <Server className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="glass-dark px-3 py-1.5 rounded-lg border border-[rgba(255,255,255,0.07)] text-xs flex items-center gap-2 text-white">
+            <Server className="w-4 h-4 text-emerald-400" />
             <span>Database: <strong className="text-emerald-400">Connected</strong></span>
           </div>
           <button
             onClick={logoutAdmin}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold text-white transition shadow-md shadow-red-900/40"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/30 hover:bg-red-600 border border-red-500/50 text-xs font-bold text-red-200 hover:text-white transition"
           >
             <LogOut className="w-3.5 h-3.5" />
-            Log Out Admin
+            <span>Log Out Admin</span>
           </button>
         </div>
       </div>
 
       {/* ── System metric cards ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#0d1117] rounded-2xl border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">System Uptime</span>
+        <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">System Uptime</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           </div>
-          <div className="text-2xl font-black text-white">99.98%</div>
-          <div className="text-[11px] text-slate-500 mt-1">SLA target: &gt; 99.9% uptime</div>
+          <div className="text-2xl font-black text-white mt-2">99.98%</div>
+          <div className="text-[11px] text-[rgba(255,255,255,0.35)] mt-1">SLA target: &gt; 99.9% uptime</div>
         </div>
-        <div className="bg-[#0d1117] rounded-2xl border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Search Speed</span>
+        <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Hospital Search Speed</span>
             <Database className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-black text-emerald-400">28 ms</div>
-          <div className="text-[11px] text-slate-500 mt-1">Hospital match (target &lt; 500ms)</div>
+          <div className="text-2xl font-black text-emerald-400 mt-2">28 ms</div>
+          <div className="text-[11px] text-[rgba(255,255,255,0.35)] mt-1">Hospital search speed (target &lt; 500ms)</div>
         </div>
-        <div className="bg-[#0d1117] rounded-2xl border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Live Paramedics</span>
+        <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Live Paramedics</span>
             <Users className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-2xl font-black text-amber-400">{liveAttendants.length}</div>
-          <div className="text-[11px] text-slate-500 mt-1">
-            <span className="text-red-400 font-bold">{respondingNow}</span> responding ·{' '}
-            <span className="text-emerald-400 font-bold">{availableNow}</span> available
+          <div className="text-2xl font-black text-amber-400 mt-2">{liveAttendants.length}</div>
+          <div className="text-[11px] text-[rgba(255,255,255,0.35)] mt-1">
+            <span className="text-red-400 font-bold">{respondingNow}</span> responding · <span className="text-emerald-400 font-bold">{availableNow}</span> available
           </div>
         </div>
-        <div className="bg-[#0d1117] rounded-2xl border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mumbai Coverage</span>
+        <div className="glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Mumbai Coverage</span>
             <MapPinned className="w-4 h-4 text-indigo-400" />
           </div>
-          <div className="text-2xl font-black text-indigo-400">22 Hospitals</div>
-          <div className="text-[11px] text-slate-500 mt-1">BMC · Colaba → Borivali</div>
+          <div className="text-2xl font-black text-indigo-400 mt-2">6 Zones</div>
+          <div className="text-[11px] text-[rgba(255,255,255,0.35)] mt-1">Borivali → Colaba · Active grid</div>
         </div>
       </div>
 
       {/* ── Tab bar ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 bg-[#0d1117] rounded-2xl border border-white/10 p-1.5">
+      <div className="flex items-center gap-1 glass-dark rounded-2xl border border-[rgba(255,255,255,0.07)] p-1.5">
         {TABS.map(tab => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;

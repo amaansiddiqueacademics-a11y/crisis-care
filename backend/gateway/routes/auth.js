@@ -141,7 +141,7 @@ router.post('/ambulance-login', async (req, res) => {
   let attendant;
   try {
     const { rows } = await db.query(
-      `SELECT id, badge_id, password_hash, name, callsign, assigned_ambulance_id
+      `SELECT id, badge_id, password_hash, name, email, callsign, assigned_ambulance_id
        FROM ambulance_attendants
        WHERE badge_id = $1
        LIMIT 1`,
@@ -188,6 +188,7 @@ router.post('/ambulance-login', async (req, res) => {
     token,
     badgeId: attendant.badge_id,
     name: attendant.name,
+        email: attendant.email,
     callsign: attendant.callsign,
     assignedAmbulanceId: attendant.assigned_ambulance_id,
   });

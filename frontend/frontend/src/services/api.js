@@ -242,3 +242,18 @@ export async function routingHealth() {
 export async function resetDemo() {
   return gatewayFetch('/api/dev/reset-demo', { method: 'POST', body: '{}' });
 }
+
+// ── Admin — Resource Changes ────────────────────────────────────────────────
+
+export async function fetchResourceChanges({ resource_type, hospital_id, limit } = {}) {
+  const params = new URLSearchParams();
+  if (resource_type && resource_type !== 'ALL') params.set('resource_type', resource_type);
+  if (hospital_id && hospital_id !== 'ALL') params.set('hospital_id', hospital_id);
+  if (limit) params.set('limit', limit);
+  const qs = params.toString() ? '?' + params.toString() : '';
+  return gatewayFetch(`/admin/resource-changes${qs}`);
+}
+
+export async function fetchAttendants() {
+  return gatewayFetch('/admin/attendants');
+}

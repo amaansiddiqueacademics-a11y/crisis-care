@@ -25,6 +25,7 @@ const streamRouter = require('./routes/stream');
 const resRouter    = require('./routes/reservations');
 const dispatchRouter = require('./routes/dispatch');
 const devRouter   = require('./routes/dev');
+const adminRouter = require('./routes/admin');
 const handshake   = require('./handshake');
 const simWorker   = require('./simulation-worker');
 
@@ -84,6 +85,7 @@ app.use('/admin/inventory', requireAuth, invRouter);
 
 // Protected: reservation confirm/release
 app.use('/admin/reservations', requireAuth, resRouter);
+app.use('/admin', adminRouter);
 
 // SSE stream
 app.use('/stream', streamRouter);

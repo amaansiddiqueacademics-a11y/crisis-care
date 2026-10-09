@@ -128,6 +128,10 @@ export const CrisisCareProvider = ({ children }) => {
     { id: 'LOG-007', timestamp: '16:58:22', date: '04/10/2026', hospitalId: 2, hospitalName: 'LifeLine Super Specialty Hospital', adminId: 'adm_priya_003', adminName: 'Dr. Priya Nair', resourceType: 'CT Scanner', previousQty: 1, newQty: 0, action: 'Scanner offline — scheduled maintenance' },
   ]);
   const [hospitalDecisions, setHospitalDecisions] = useState({});
+  const [liveAttendants, setLiveAttendants] = useState([]);
+  const [attendantsLoading, setAttendantsLoading] = useState(false);
+  const [resourceChanges, setResourceChanges] = useState([]);
+  const [resourceChangesLoading, setResourceChangesLoading] = useState(false);
   const [selectedHospitalForAmbulance, setSelectedHospitalForAmbulance] = useState(null);
 
   // ── Hospital inventory (post-login, real) ──────────────────────────────────
@@ -438,21 +442,37 @@ export const CrisisCareProvider = ({ children }) => {
   }, [showToast]);
 
   // ── Ambulance / Paramedic Auth (demo-only for now) ────────────────────────
-  const loginAmbulance = useCallback((badgeId, password) => {
-    if (password && password.length >= 4) {
+  const loginAmbulance = useCallback(async (badgeId, password) => {
+    try {
+      const result = await api.loginAmbulanceApi(badgeId, password);
       const user = {
-        badgeId: badgeId || 'PARA-409',
-        name: 'Dr. Ananya Roy (Paramedic Lead)',
-        callsign: 'Delta-101 (ALS Unit)',
-        assignedAmbulanceId: 'amb-101',
+        badgeId: result.badgeId,
+        name: result.name,
+        email: result.email,
+        callsign: result.callsign,
+        assignedAmbulanceId: result.assignedAmbulanceId,
+        token: result.token,
       };
       setAmbulanceAuth(user);
       showToast('Attendant Logged In', `Session active for ${user.name}`, 'success');
       return true;
+    } catch (err) {
+      if (backendOnline === false && password && password.length >= 4) {
+        const user = {
+          badgeId: badgeId || 'PARA-409',
+          name: 'Dr. Ananya Roy (Paramedic Lead)',
+          email: 'ananya.roy@crisiscare.in',
+          callsign: 'Delta-101 (ALS Unit)',
+          assignedAmbulanceId: 'amb-101',
+        };
+        setAmbulanceAuth(user);
+        showToast('Demo Mode', 'Logged in as paramedic (backend offline)', 'info');
+        return true;
+      }
+      showToast('Login Failed', err.message, 'warning');
+      return false;
     }
-    showToast('Login Failed', 'Password must be at least 4 characters.', 'warning');
-    return false;
-  }, [showToast]);
+  }, [showToast, backendOnline]);
 
   const logoutAmbulance = useCallback(() => {
     setAmbulanceAuth(null);
@@ -480,6 +500,32 @@ export const CrisisCareProvider = ({ children }) => {
     setAdminAuth(null);
     showToast('Logged Out', 'Administrator session ended.', 'info');
   }, [showToast]);
+
+  // ── Admin: fetch live resource changes from DB ────────────────────────────
+  const fetchAdminResourceChanges = useCallback(async (filters = {}) => {
+    setResourceChangesLoading(true);
+    try {
+      const data = await api.fetchResourceChanges(filters);
+      setResourceChanges(data.changes || []);
+    } catch (err) {
+      console.warn('[Admin] fetchResourceChanges failed:', err.message);
+    } finally {
+      setResourceChangesLoading(false);
+    }
+  }, []);
+
+  // ── Admin: fetch live ambulance attendants ────────────────────────────────
+  const fetchLiveAttendants = useCallback(async () => {
+    setAttendantsLoading(true);
+    try {
+      const data = await api.fetchAttendants();
+      setLiveAttendants(data.attendants || []);
+    } catch (err) {
+      console.warn('[Admin] fetchAttendants failed:', err.message);
+    } finally {
+      setAttendantsLoading(false);
+    }
+  }, []);
 
   // ── Citizen Emergency Report ───────────────────────────────────────────────
   const reportEmergency = useCallback(async (reportData) => {
@@ -766,6 +812,11 @@ export const CrisisCareProvider = ({ children }) => {
       selectHospitalForAmbulance,
       respondToAmbulance,
       submitAttendantAssessment,
+
+      // Admin extras
+      liveAttendants, attendantsLoading,
+      resourceChanges, resourceChangesLoading,
+      fetchAdminResourceChanges, fetchLiveAttendants,
 
       // Citizen SOS
       reportEmergency, cancelCitizenIncident, startNewCitizenReport,

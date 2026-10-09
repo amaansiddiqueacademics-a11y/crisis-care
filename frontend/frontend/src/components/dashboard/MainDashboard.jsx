@@ -186,7 +186,7 @@ export const MainDashboard = () => {
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#F5F5F7] border border-gray-200">
                 <span className="w-2 h-2 rounded-full bg-[#FF3B30] animate-pulse" />
                 <span className="text-[#1D1D1F] text-[11px] font-bold uppercase tracking-wider">
-                  Real-Time Emergency Infrastructure
+                  Mumbai · Real-Time Emergency Infrastructure
                 </span>
               </div>
 
@@ -199,9 +199,9 @@ export const MainDashboard = () => {
               </h1>
 
               <p className="text-gray-500 text-lg sm:text-xl font-medium leading-relaxed max-w-lg">
-                Connecting <strong className="text-[#1D1D1F]">citizens</strong>,{' '}
+                Connecting Mumbai's <strong className="text-[#1D1D1F]">citizens</strong>,{' '}
                 <strong className="text-[#1D1D1F]">paramedics</strong>, and{' '}
-                <strong className="text-[#1D1D1F]">hospitals</strong> in a synchronized, closed loop — eliminating fatal transit delays.
+                <strong className="text-[#1D1D1F]">hospitals</strong> in a synchronized, closed loop — eliminating fatal transit delays across all 6 zones.
               </p>
 
               {/* CTA buttons */}
@@ -385,10 +385,10 @@ export const MainDashboard = () => {
             Live Map Operations
           </span>
           <h2 className="text-3xl font-black text-[#1D1D1F]">
-            City-Wide Emergency Tracking
+            Mumbai Emergency Tracking
           </h2>
           <p className="text-sm font-medium text-gray-500 mt-2">
-            Active emergency incidents and operational zones. (Hospital locations omitted for security protocols).
+            Active emergency incidents and operational zones across all six Mumbai districts. (Hospital locations omitted for security protocols).
           </p>
         </div>
         <div className="w-full relative shadow-md rounded-2xl overflow-hidden border border-gray-200">
@@ -417,19 +417,27 @@ export const MainDashboard = () => {
             <React.Fragment key={i}>
               <div className="inline-flex items-center gap-3 bg-[#F5F5F7] px-5 py-3 rounded-2xl border border-gray-200/60 shadow-sm transition-transform hover:scale-105">
                 <span className="text-[#34C759] font-bold text-xs bg-green-100 px-2 py-1 rounded-md">LIVE</span>
-                <span className="text-[#1D1D1F] text-sm font-semibold">Ambulance dispatched to Zone Alpha</span>
+                <span className="text-[#1D1D1F] text-sm font-semibold">Ambulance dispatched to Andheri East</span>
               </div>
               <div className="inline-flex items-center gap-3 bg-[#F5F5F7] px-5 py-3 rounded-2xl border border-gray-200/60 shadow-sm transition-transform hover:scale-105">
                 <span className="text-[#FF9500] font-bold text-xs bg-orange-100 px-2 py-1 rounded-md">UPDATE</span>
-                <span className="text-[#1D1D1F] text-sm font-semibold">ETA revised for Incident #492</span>
+                <span className="text-[#1D1D1F] text-sm font-semibold">ETA revised — Bandra Kurla Complex</span>
               </div>
               <div className="inline-flex items-center gap-3 bg-[#F5F5F7] px-5 py-3 rounded-2xl border border-gray-200/60 shadow-sm transition-transform hover:scale-105">
                 <span className="text-[#007AFF] font-bold text-xs bg-blue-100 px-2 py-1 rounded-md">SYNC</span>
-                <span className="text-[#1D1D1F] text-sm font-semibold">Emergency routing grid optimized</span>
+                <span className="text-[#1D1D1F] text-sm font-semibold">Routing grid optimised — Dadar zone</span>
               </div>
               <div className="inline-flex items-center gap-3 bg-[#F5F5F7] px-5 py-3 rounded-2xl border border-gray-200/60 shadow-sm transition-transform hover:scale-105">
                 <span className="text-[#FF3B30] font-bold text-xs bg-red-100 px-2 py-1 rounded-md">ALERT</span>
-                <span className="text-[#1D1D1F] text-sm font-semibold">Priority routing activated for trauma</span>
+                <span className="text-[#1D1D1F] text-sm font-semibold">Priority routing activated — Borivali trauma</span>
+              </div>
+              <div className="inline-flex items-center gap-3 bg-[#F5F5F7] px-5 py-3 rounded-2xl border border-gray-200/60 shadow-sm transition-transform hover:scale-105">
+                <span className="text-[#34C759] font-bold text-xs bg-green-100 px-2 py-1 rounded-md">LIVE</span>
+                <span className="text-[#1D1D1F] text-sm font-semibold">Paramedic PARA-118 responding — Worli</span>
+              </div>
+              <div className="inline-flex items-center gap-3 bg-[#F5F5F7] px-5 py-3 rounded-2xl border border-gray-200/60 shadow-sm transition-transform hover:scale-105">
+                <span className="text-[#AF52DE] font-bold text-xs bg-purple-100 px-2 py-1 rounded-md">ICU</span>
+                <span className="text-[#1D1D1F] text-sm font-semibold">Bed reserved at KEM Hospital, Parel</span>
               </div>
             </React.Fragment>
           ))}

@@ -161,7 +161,7 @@ export const Header = () => {
                   CRISIS<span className="cc-brand-accent">CARE</span>
                 </span>
                 <div className="text-[10px] text-[rgba(255,255,255,0.3)] font-medium tracking-widest uppercase leading-none mt-0.5">
-                  Real-Time Emergency Routing
+                  Mumbai · Real-Time Emergency Routing
                 </div>
               </div>
             </button>
