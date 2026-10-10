@@ -1,182 +1,64 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Navigation, MapPin, Building2, Truck, ShieldCheck } from 'lucide-react';
 
-// Clean, professional Origin Marker (Current Location / Ambulance)
-const createOriginIcon = (label = 'Current Location') =>
-  L.divIcon({
-    className: 'custom-clean-origin',
-    html: `
-      <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
-        <div style="position: absolute; width: 36px; height: 36px; background: rgba(211, 47, 47, 0.3); border-radius: 50%; animation: pulseMarker 1.8s infinite;"></div>
-        <div style="width: 22px; height: 22px; background: #D32F2F; border: 3px solid #FFFFFF; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;">
-          <div style="width: 6px; height: 6px; background: white; border-radius: 50%;"></div>
-        </div>
-      </div>
-    `,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-    popupAnchor: [0, -18],
-  });
+const escapeHtml = (text) =>
+  String(text ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-// Clean Destination Marker (Selected Target Hospital)
-const createDestinationIcon = (hospitalName) =>
-  L.divIcon({
-    className: 'custom-clean-dest',
-    html: `
-      <div style="position: relative; cursor: pointer; display: flex; flex-direction: column; align-items: center;">
-        <div style="
-          background: #0D4752; 
-          color: white; 
-          padding: 5px 10px; 
-          border-radius: 8px; 
-          border: 2px solid #0F6B78; 
-          box-shadow: 0 4px 12px rgba(13, 71, 82, 0.35); 
-          font-weight: 800; 
-          font-size: 11px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          white-space: nowrap;
-        ">
-          <span style="background: #2E7D32; width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span>
-          🏥 ${hospitalName || 'Destination Hospital'}
-        </div>
-        <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid #0D4752;"></div>
-      </div>
-    `,
-    iconSize: [140, 36],
-    iconAnchor: [70, 36],
-    popupAnchor: [0, -36],
-  });
+const pulse = (color) => `
+  <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:34px;">
+    <div style="position:absolute;width:34px;height:34px;background:${color}40;border-radius:50%;animation:pulseMarker 1.8s infinite;"></div>
+    <div style="width:18px;height:18px;background:${color};border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.3);"></div>
+  </div>`;
 
-function ChangeView({ center, zoom }) {
+const tag = (bg, border, text) => `
+  <div style="display:flex;flex-direction:column;align-items:center;">
+    <div style="background:${bg};color:#fff;padding:4px 8px;border-radius:8px;border:2px solid ${border};box-shadow:0 3px 10px rgba(0,0,0,.25);font-weight:700;font-size:11px;white-space:nowrap;">${escapeHtml(text)}</div>
+    <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid ${bg};"></div>
+  </div>`;
+
+const ICONS = {
+  patient: (m) => L.divIcon({ className: '', html: pulse(m.color || '#DC2626'), iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -17] }),
+  ambulance: (m) => L.divIcon({ className: '', html: tag(m.color || '#047857', '#fff', `🚑 ${m.label}`), iconSize: [120, 32], iconAnchor: [60, 32], popupAnchor: [0, -32] }),
+  hospital: (m) => L.divIcon({ className: '', html: tag('#1C1917', m.color || '#F59E0B', m.label), iconSize: [160, 32], iconAnchor: [80, 32], popupAnchor: [0, -32] }),
+};
+
+/** Re-frames only when the set of coordinates changes, so live updates don't jitter the map. */
+function FitView({ points }) {
   const map = useMap();
+  const key = points.map((p) => p.join(',')).join('|');
   useEffect(() => {
-    if (center && center[0] && center[1]) {
-      map.flyTo(center, zoom, { duration: 1.2 });
-    }
-  }, [center, zoom, map]);
+    if (points.length === 1) map.setView(points[0], 14, { animate: false });
+    else if (points.length > 1) map.fitBounds(points, { padding: [50, 50], maxZoom: 15, animate: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, key]);
   return null;
 }
 
-export const MapView = ({ 
-  userLocation, 
-  activeRouteTarget, 
-  height = '540px',
-  originLabel = 'Current Location'
-}) => {
-  // Default coordinate if userLocation not yet set
-  const originLat = userLocation?.lat || 19.0665;
-  const originLng = userLocation?.lng || 72.8700;
-  const center = [originLat, originLng];
-
-  const targetLat = activeRouteTarget?.lat || 19.0760;
-  const targetLng = activeRouteTarget?.lng || 72.8777;
-
-  // Clean direct navigation polyline with natural slight curve
-  const routePoints = activeRouteTarget ? [
-    [originLat, originLng],
-    [
-      (originLat * 2 + targetLat) / 3 + 0.0012,
-      (originLng * 2 + targetLng) / 3 - 0.0015
-    ],
-    [
-      (originLat + targetLat * 2) / 3 - 0.001,
-      (originLng + targetLng * 2) / 3 + 0.0012
-    ],
-    [targetLat, targetLng]
-  ] : null;
+/**
+ * markers: [{ id, lat, lng, kind: 'patient'|'ambulance'|'hospital', label, popup, color }]
+ * route:   optional [[lat, lng], ...] drawn as a dashed straight line (not road routing)
+ */
+export const MapView = ({ markers = [], route = null, height = '360px', fitTo = null }) => {
+  const valid = markers.filter((m) => m.lat != null && m.lng != null);
+  const points = useMemo(
+    () => (fitTo || valid).filter((m) => m.lat != null).map((m) => [m.lat, m.lng]),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify((fitTo || valid).map((m) => [m.lat, m.lng]))],
+  );
+  const center = points[0] || [19.076, 72.8777];
 
   return (
-    <div 
-      className="relative w-full rounded-2xl overflow-hidden border-2 border-surface-border shadow-elevated bg-slate-100" 
-      style={{ height }}
-    >
-      {/* Clean HUD Top Bar */}
-      <div className="absolute top-4 left-4 z-[400] bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl border border-surface-border shadow-md flex items-center gap-3 text-xs">
-        <div className="flex items-center gap-2 font-black text-teal-deep">
-          <Navigation className="w-4 h-4 text-emergency-red animate-pulse" />
-          <span>Live Emergency GPS Tracking</span>
-        </div>
-        <div className="h-4 w-px bg-slate-300"></div>
-        <div className="text-slate-600 text-[11px] font-semibold">
-          {activeRouteTarget ? (
-            <span>
-              Route to: <strong className="text-teal-deep">{activeRouteTarget.name}</strong> (~{activeRouteTarget.estimatedMinutes || 6} mins away)
-            </span>
-          ) : (
-            <span>Tracking active location</span>
-          )}
-        </div>
-      </div>
-
-      <MapContainer
-        center={center}
-        zoom={13}
-        scrollWheelZoom={true}
-        className="w-full h-full"
-      >
-        <ChangeView 
-          center={activeRouteTarget ? [(originLat + targetLat) / 2, (originLng + targetLng) / 2] : center} 
-          zoom={13} 
-        />
-        
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        {/* 1. Clean Origin Marker (Where the patient / ambulance is) */}
-        <Marker position={[originLat, originLng]} icon={createOriginIcon(originLabel)}>
-          <Popup>
-            <div className="p-1 text-xs">
-              <span className="font-extrabold text-emergency-red block mb-0.5">● {originLabel}</span>
-              <p className="text-slate-600">{userLocation?.address || 'Incident Scene Coordinates'}</p>
-              <p className="text-[10px] text-slate-400 mt-1">
-                Lat: {originLat.toFixed(4)}, Lng: {originLng.toFixed(4)}
-              </p>
-            </div>
-          </Popup>
-        </Marker>
-
-        {/* 2. Clean Destination Marker (Target Hospital Only) */}
-        {activeRouteTarget && (
-          <Marker position={[targetLat, targetLng]} icon={createDestinationIcon(activeRouteTarget.name)}>
-            <Popup>
-              <div className="p-1 text-xs">
-                <span className="font-black text-teal-deep text-sm block">{activeRouteTarget.name}</span>
-                <p className="text-slate-500 text-[11px]">{activeRouteTarget.address}</p>
-                <div className="mt-2 pt-2 border-t border-slate-200 flex justify-between font-bold text-[11px]">
-                  <span className="text-status-green">ICU Beds: {activeRouteTarget.inventory?.icuBeds ?? 0} Available</span>
-                  <span className="text-emergency-red">ETA: ~{activeRouteTarget.estimatedMinutes} mins</span>
-                </div>
-              </div>
-            </Popup>
+    <div className="relative w-full rounded-2xl overflow-hidden border border-stone-200 bg-stone-100" style={{ height }}>
+      <MapContainer center={center} zoom={12} scrollWheelZoom={false} className="w-full h-full">
+        <FitView points={points.length ? points : [center]} />
+        <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        {valid.map((m) => (
+          <Marker key={m.id || `${m.kind}-${m.lat}-${m.lng}`} position={[m.lat, m.lng]} icon={ICONS[m.kind || 'patient'](m)}>
+            {m.popup && <Popup>{m.popup}</Popup>}
           </Marker>
-        )}
-
-        {/* 3. The Clean Navigation Tracking Route Line */}
-        {routePoints && (
-          <>
-            {/* Background glow path */}
-            <Polyline
-              positions={routePoints}
-              color="#D32F2F"
-              weight={6}
-              opacity={0.35}
-            />
-            {/* Primary dashed route line */}
-            <Polyline
-              positions={routePoints}
-              color="#D32F2F"
-              weight={4}
-              opacity={0.95}
-              dashArray="10, 8"
-            />
-          </>
-        )}
+        ))}
+        {route && route.length > 1 && <Polyline positions={route} pathOptions={{ color: '#F59E0B', weight: 4, opacity: 0.9, dashArray: '10, 8' }} />}
       </MapContainer>
     </div>
   );

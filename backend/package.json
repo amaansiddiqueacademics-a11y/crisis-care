@@ -6,7 +6,12 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "db:init": "node src/scripts/initDatabase.js",
+    "db:seed": "node src/scripts/seedDatabase.js",
+    "db:setup": "npm run db:init && npm run db:seed",
+    "db:demo": "node src/scripts/seedDemo.js",
+    "test": "node --test --test-concurrency=1 test/flow.test.js"
   },
   "keywords": [
     "crisis-care",
@@ -14,13 +19,11 @@
     "ambulance",
     "hospital"
   ],
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "csv-parse": "^7.0.3",
-    "csv-parser": "^3.2.1",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "express-rate-limit": "^8.7.0",
@@ -32,6 +35,7 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "socket.io-client": "^4.8.1"
   }
 }

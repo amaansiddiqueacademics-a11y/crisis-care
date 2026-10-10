@@ -13,7 +13,21 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "South Mumbai",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM",
+      "BURNS"
+    ]
   },
   {
     "seed_key": "sion_mumbai",
@@ -29,7 +43,21 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Central Suburbs",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM",
+      "BURNS"
+    ]
   },
   {
     "seed_key": "jj_mumbai",
@@ -45,7 +73,21 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "South Mumbai",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM",
+      "BURNS"
+    ]
   },
   {
     "seed_key": "nair_mumbai",
@@ -61,7 +103,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "South Mumbai",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "lilavati_mumbai",
@@ -77,7 +132,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Western Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "kokilaben_mumbai",
@@ -93,7 +161,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Western Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "jaslok_mumbai",
@@ -109,7 +190,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "South Mumbai",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "hinduja_mumbai",
@@ -125,7 +219,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Western Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "bombay_mumbai",
@@ -141,7 +248,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "South Mumbai",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "wockhardt_mumbai",
@@ -157,7 +277,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "South Mumbai",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "nanavati_mumbai",
@@ -173,7 +306,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Western Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "holyfamily_mumbai",
@@ -189,7 +335,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Western Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "fortis_mulund",
@@ -205,7 +359,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Central Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "saifee_mumbai",
@@ -221,7 +388,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "South Mumbai",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "cooper_mumbai",
@@ -237,7 +412,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Western Suburbs",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "rajawadi_mumbai",
@@ -253,7 +441,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Central Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "bhabha_mumbai",
@@ -269,7 +465,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Western Suburbs",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "breachcandy_mumbai",
@@ -285,7 +489,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "South Mumbai",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "apollo_navimumbai",
@@ -301,7 +513,20 @@
     "coord_quality": "address_level",
     "verify_pin": true,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Navi Mumbai & Panvel",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "gleneagles_mumbai",
@@ -317,7 +542,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "South Mumbai",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "sevenhills_mumbai",
@@ -333,7 +571,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Central Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "hiranandani_mumbai",
@@ -349,7 +600,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Central Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "bhagwati_mumbai",
@@ -365,7 +629,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Western Suburbs",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "sassoon_pune",
@@ -381,7 +653,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "rubyhall_pune",
@@ -397,7 +682,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "jehangir_pune",
@@ -413,7 +711,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "dmh_pune",
@@ -429,7 +740,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "kem_pune",
@@ -445,7 +769,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "abmh_pune",
@@ -461,7 +798,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pimpri-Chinchwad",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "sahyadri_pune",
@@ -477,7 +827,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "poona_pune",
@@ -493,7 +856,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "noble_pune",
@@ -509,7 +880,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "ycm_pune",
@@ -525,7 +909,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pimpri-Chinchwad",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "inamdar_pune",
@@ -541,7 +938,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "bharati_pune",
@@ -557,7 +962,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "jupiter_pune",
@@ -573,7 +991,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "manipal_kharadi_pune",
@@ -589,7 +1020,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pune",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "gmch_nagpur",
@@ -605,7 +1049,20 @@
     "coord_quality": "campus_level",
     "verify_pin": true,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nagpur",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "mayo_nagpur",
@@ -621,7 +1078,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nagpur",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "aiims_nagpur",
@@ -637,7 +1107,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nagpur",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "orangecity_nagpur",
@@ -653,7 +1136,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nagpur",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "wockhardt_nagpur",
@@ -669,7 +1165,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nagpur",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "kims_nagpur",
@@ -685,7 +1194,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nagpur",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "alexis_nagpur",
@@ -701,7 +1223,15 @@
     "coord_quality": "address_level",
     "verify_pin": true,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nagpur",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "care_nagpur",
@@ -717,7 +1247,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nagpur",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "lata_nagpur",
@@ -733,7 +1276,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nagpur",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "gmch_sambhajinagar",
@@ -749,7 +1305,20 @@
     "coord_quality": "address_level",
     "verify_pin": true,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Chhatrapati Sambhajinagar (Aurangabad)",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "mgm_sambhajinagar",
@@ -765,7 +1334,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Chhatrapati Sambhajinagar (Aurangabad)",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "kamalnayan_sambhajinagar",
@@ -781,7 +1363,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Chhatrapati Sambhajinagar (Aurangabad)",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "dhoot_sambhajinagar",
@@ -797,7 +1392,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Chhatrapati Sambhajinagar (Aurangabad)",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "ciigma_sambhajinagar",
@@ -813,7 +1421,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Chhatrapati Sambhajinagar (Aurangabad)",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "hedgewar_sambhajinagar",
@@ -829,7 +1450,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Chhatrapati Sambhajinagar (Aurangabad)",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "dgh_nandurbar",
@@ -845,7 +1474,14 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nandurbar",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
   },
   {
     "seed_key": "sdh_taloda",
@@ -861,7 +1497,14 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Taloda",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
   },
   {
     "seed_key": "rh_akkalkuwa",
@@ -877,7 +1520,14 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Akkalkuwa",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
   },
   {
     "seed_key": "rh_shahada",
@@ -893,7 +1543,14 @@
     "coord_quality": "clinic_type_result",
     "verify_pin": true,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Shahada",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
   },
   {
     "seed_key": "gh_gadchiroli",
@@ -909,7 +1566,14 @@
     "coord_quality": "campus_level",
     "verify_pin": true,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Gadchiroli",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
   },
   {
     "seed_key": "sdh_aheri",
@@ -925,7 +1589,14 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Aheri",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
   },
   {
     "seed_key": "sdh_armori",
@@ -941,7 +1612,14 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Armori",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
   },
   {
     "seed_key": "search_shodhgram",
@@ -957,7 +1635,14 @@
     "coord_quality": "org_type_result",
     "verify_pin": true,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Shodhgram",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
   },
   {
     "seed_key": "jupiter_thane",
@@ -973,7 +1658,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Thane & Kalyan",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "bethany_thane",
@@ -989,7 +1687,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Thane & Kalyan",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "kaushalya_thane",
@@ -1005,7 +1711,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Thane & Kalyan",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "csmh_kalwa_thane",
@@ -1021,7 +1735,21 @@
     "coord_quality": "address_level",
     "verify_pin": true,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Thane & Kalyan",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM",
+      "BURNS"
+    ]
   },
   {
     "seed_key": "highland_thane",
@@ -1037,7 +1765,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Thane & Kalyan",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "fortis_vashi",
@@ -1053,7 +1794,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Navi Mumbai & Panvel",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "dypatil_nerul",
@@ -1069,7 +1823,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Navi Mumbai & Panvel",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "nmmc_vashi",
@@ -1085,7 +1852,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Navi Mumbai & Panvel",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "mgm_vashi",
@@ -1101,7 +1876,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Navi Mumbai & Panvel",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "lokmanya_chinchwad",
@@ -1117,7 +1905,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pimpri-Chinchwad",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "dypatil_pimpri",
@@ -1133,7 +1929,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Pimpri-Chinchwad",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "civil_nashik",
@@ -1149,7 +1958,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nashik",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "medicover_nashik",
@@ -1165,7 +1987,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nashik",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "apollo_nashik",
@@ -1181,7 +2016,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nashik",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "vpmc_nashik",
@@ -1197,7 +2045,20 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "A",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Nashik",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
   },
   {
     "seed_key": "rukminibai_kalyan",
@@ -1213,7 +2074,15 @@
     "coord_quality": "address_level",
     "verify_pin": true,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Thane & Kalyan",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "shastrinagar_dombivli",
@@ -1229,7 +2098,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Thane & Kalyan",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "icon_dombivli",
@@ -1245,7 +2122,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Thane & Kalyan",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "dmpetit_vasai",
@@ -1261,7 +2146,15 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Palghar & Vasai-Virar",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
   },
   {
     "seed_key": "wellcare_virar",
@@ -1277,6 +2170,623 @@
     "coord_quality": "place_match",
     "verify_pin": false,
     "suggested_tier": "B",
-    "source": "Google Places lookup, 2026-09-20"
+    "source": "Google Places lookup, 2026-09-20",
+    "zone": "Palghar & Vasai-Virar",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "stgeorge_mumbai",
+    "name": "St. George's Hospital",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "P. D'Mello Road, Fort, Mumbai 400001",
+    "phone": null,
+    "lat": 18.9406,
+    "lng": 72.8371,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "South Mumbai",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "gt_mumbai",
+    "name": "Gokuldas Tejpal (G.T.) Hospital",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "L.T. Marg, near CSMT, Mumbai 400001",
+    "phone": null,
+    "lat": 18.9446,
+    "lng": 72.8331,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "South Mumbai",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "hnreliance_mumbai",
+    "name": "Sir H.N. Reliance Foundation Hospital",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "Raja Rammohan Roy Road, Girgaon, Mumbai 400004",
+    "phone": "+91 22 6130 5000",
+    "lat": 18.9583,
+    "lng": 72.8196,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "A",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "South Mumbai",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
+  },
+  {
+    "seed_key": "masina_mumbai",
+    "name": "Masina Hospital (Burns Centre)",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "Sant Savta Marg, Byculla East, Mumbai 400027",
+    "phone": null,
+    "lat": 18.9772,
+    "lng": 72.8366,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "South Mumbai",
+    "ownership": "PRIVATE",
+    "services": [
+      "BURNS",
+      "TRAUMA",
+      "DIALYSIS"
+    ]
+  },
+  {
+    "seed_key": "cama_mumbai",
+    "name": "Cama and Albless Hospital (Women & Children)",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "Mahapalika Marg, Fort, Mumbai 400001",
+    "phone": null,
+    "lat": 18.9433,
+    "lng": 72.8323,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "South Mumbai",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC"
+    ]
+  },
+  {
+    "seed_key": "bhatia_mumbai",
+    "name": "Bhatia Hospital",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "Tardeo Road, Tardeo, Mumbai 400007",
+    "phone": null,
+    "lat": 18.9693,
+    "lng": 72.8138,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "South Mumbai",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "wadia_children_mumbai",
+    "name": "Bai Jerbai Wadia Hospital for Children",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "Acharya Donde Marg, Parel, Mumbai 400012",
+    "phone": null,
+    "lat": 19.003,
+    "lng": 72.8429,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "A",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "South Mumbai",
+    "ownership": "PRIVATE",
+    "services": [
+      "PAEDIATRIC",
+      "NICU",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "hbttrauma_jogeshwari",
+    "name": "HBT Trauma Care Municipal Hospital, Jogeshwari",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "Western Express Highway, Jogeshwari East, Mumbai 400060",
+    "phone": null,
+    "lat": 19.1393,
+    "lng": 72.856,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "A",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Western Suburbs",
+    "ownership": "PUBLIC",
+    "services": [
+      "TRAUMA",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
+  },
+  {
+    "seed_key": "shatabdi_kandivali",
+    "name": "Dr. Babasaheb Ambedkar (Shatabdi) Municipal Hospital, Kandivali",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "Shankar Lane, Kandivali West, Mumbai 400067",
+    "phone": null,
+    "lat": 19.2047,
+    "lng": 72.8423,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Western Suburbs",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "vndesai_santacruz",
+    "name": "V.N. Desai Municipal General Hospital, Santacruz",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "Vakola, Santacruz East, Mumbai 400055",
+    "phone": null,
+    "lat": 19.0795,
+    "lng": 72.8478,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Western Suburbs",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "bhaktivedanta_mira",
+    "name": "Bhaktivedanta Hospital, Mira Road",
+    "city": "Mira-Bhayandar",
+    "cluster": "Mira-Bhayandar",
+    "region_type": "urban_dense",
+    "address": "Srishti Complex, Mira Road East 401107",
+    "phone": null,
+    "lat": 19.2799,
+    "lng": 72.8713,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "A",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Western Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
+  },
+  {
+    "seed_key": "wockhardt_mira",
+    "name": "Wockhardt Hospital, Mira Road",
+    "city": "Mira-Bhayandar",
+    "cluster": "Mira-Bhayandar",
+    "region_type": "urban_dense",
+    "address": "Mira Road East 401107",
+    "phone": null,
+    "lat": 19.2722,
+    "lng": 72.8699,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "A",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Western Suburbs",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
+  },
+  {
+    "seed_key": "mtagarwal_mulund",
+    "name": "M.T. Agarwal Municipal Hospital, Mulund",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "Mulund West, Mumbai 400080",
+    "phone": null,
+    "lat": 19.1735,
+    "lng": 72.9508,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Central Suburbs",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "kurlabhabha_mumbai",
+    "name": "K.B. Bhabha Municipal Hospital, Kurla",
+    "city": "Mumbai",
+    "cluster": "Mumbai",
+    "region_type": "urban_dense",
+    "address": "Kurla West, Mumbai 400070",
+    "phone": null,
+    "lat": 19.0703,
+    "lng": 72.8797,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Central Suburbs",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "central_ulhasnagar",
+    "name": "Central Hospital, Ulhasnagar (Govt.)",
+    "city": "Ulhasnagar",
+    "cluster": "Ulhasnagar",
+    "region_type": "urban_dense",
+    "address": "Ulhasnagar 421003",
+    "phone": null,
+    "lat": 19.2183,
+    "lng": 73.1612,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Thane & Kalyan",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "fortis_kalyan",
+    "name": "Fortis Hospital, Kalyan",
+    "city": "Kalyan",
+    "cluster": "Kalyan",
+    "region_type": "urban_dense",
+    "address": "Godrej Hill, Kalyan West 421301",
+    "phone": null,
+    "lat": 19.2425,
+    "lng": 73.1302,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Thane & Kalyan",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "nbc_airoli",
+    "name": "National Burns Centre, Airoli",
+    "city": "Navi Mumbai",
+    "cluster": "Navi Mumbai",
+    "region_type": "urban_dense",
+    "address": "Sector 13, Airoli, Navi Mumbai 400708",
+    "phone": null,
+    "lat": 19.1561,
+    "lng": 72.9969,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Navi Mumbai & Panvel",
+    "ownership": "PRIVATE",
+    "services": [
+      "BURNS"
+    ]
+  },
+  {
+    "seed_key": "terna_nerul",
+    "name": "Terna Sahyadri Speciality Hospital, Nerul",
+    "city": "Navi Mumbai",
+    "cluster": "Navi Mumbai",
+    "region_type": "urban_dense",
+    "address": "Sector 22, Nerul West, Navi Mumbai 400706",
+    "phone": null,
+    "lat": 19.0337,
+    "lng": 73.0185,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Navi Mumbai & Panvel",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "mgm_kamothe",
+    "name": "MGM Hospital, Kamothe",
+    "city": "Panvel",
+    "cluster": "Panvel",
+    "region_type": "urban_dense",
+    "address": "Sector 1, Kamothe, Navi Mumbai 410209",
+    "phone": null,
+    "lat": 19.017,
+    "lng": 73.0958,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "A",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Navi Mumbai & Panvel",
+    "ownership": "PRIVATE",
+    "services": [
+      "TRAUMA",
+      "CATH_LAB",
+      "STROKE",
+      "MATERNITY",
+      "NICU",
+      "PAEDIATRIC",
+      "DIALYSIS",
+      "TOXICOLOGY",
+      "ANTIVENOM"
+    ]
+  },
+  {
+    "seed_key": "sdh_panvel",
+    "name": "Sub-District Hospital, Panvel (Govt.)",
+    "city": "Panvel",
+    "cluster": "Panvel",
+    "region_type": "urban_dense",
+    "address": "Panvel 410206",
+    "phone": null,
+    "lat": 18.9893,
+    "lng": 73.1168,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Navi Mumbai & Panvel",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "cardinalgracias_vasai",
+    "name": "Cardinal Gracias Memorial Hospital, Vasai",
+    "city": "Vasai",
+    "cluster": "Vasai",
+    "region_type": "urban_dense",
+    "address": "Bangli, Vasai West 401202",
+    "phone": null,
+    "lat": 19.3666,
+    "lng": 72.8156,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Palghar & Vasai-Virar",
+    "ownership": "PRIVATE",
+    "services": [
+      "MATERNITY",
+      "PAEDIATRIC",
+      "ANTIVENOM",
+      "TOXICOLOGY"
+    ]
+  },
+  {
+    "seed_key": "rh_palghar",
+    "name": "Rural Hospital, Palghar (Govt.)",
+    "city": "Palghar",
+    "cluster": "Palghar",
+    "region_type": "rural_sparse",
+    "address": "Palghar 401404",
+    "phone": null,
+    "lat": 19.6967,
+    "lng": 72.7653,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Palghar & Vasai-Virar",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
+  },
+  {
+    "seed_key": "sdh_dahanu",
+    "name": "Sub-District Hospital, Dahanu (Govt.)",
+    "city": "Dahanu",
+    "cluster": "Dahanu",
+    "region_type": "rural_sparse",
+    "address": "Dahanu 401601",
+    "phone": null,
+    "lat": 19.9712,
+    "lng": 72.7312,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Palghar & Vasai-Virar",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
+  },
+  {
+    "seed_key": "rh_kasa",
+    "name": "Rural Hospital, Kasa (Govt.)",
+    "city": "Dahanu",
+    "cluster": "Dahanu",
+    "region_type": "rural_sparse",
+    "address": "Kasa, Dahanu taluka 401607",
+    "phone": null,
+    "lat": 19.9333,
+    "lng": 72.8833,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Palghar & Vasai-Virar",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
+  },
+  {
+    "seed_key": "patangshah_jawhar",
+    "name": "Patangshah Cottage Hospital, Jawhar (Govt.)",
+    "city": "Jawhar",
+    "cluster": "Jawhar",
+    "region_type": "rural_sparse",
+    "address": "Jawhar 401603",
+    "phone": null,
+    "lat": 19.9102,
+    "lng": 73.2303,
+    "google_place_id": null,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
+    "suggested_tier": "B",
+    "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
+    "zone": "Palghar & Vasai-Virar",
+    "ownership": "PUBLIC",
+    "services": [
+      "MATERNITY",
+      "ANTIVENOM",
+      "PAEDIATRIC"
+    ]
   }
 ]

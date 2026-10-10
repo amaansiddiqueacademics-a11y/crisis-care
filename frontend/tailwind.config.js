@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -8,10 +9,10 @@ export default {
     extend: {
       colors: {
         teal: {
-          deep: '#0D4752',
-          primary: '#0F6B78',
-          light: '#E6F4F6',
-          hover: '#0a5864'
+          deep: '#1C1917',
+          primary: '#D97706',
+          light: '#FEF3C7',
+          hover: '#B45309'
         },
         emergency: {
           red: '#D32F2F',
@@ -28,9 +29,9 @@ export default {
           blueLight: '#E3F2FD'
         },
         surface: {
-          bg: '#F7FAFC',
+          bg: '#FAFAF9',
           card: '#FFFFFF',
-          border: '#D9E2E7',
+          border: '#E7E5E4',
           dark: '#17212B',
           muted: '#667085'
         }

@@ -1,25 +1,30 @@
 import http from "http";
 
 import app from "./app.js";
-import { testDatabaseConnection } from "./config/db.js";
-
-const PORT = process.env.PORT || 5000;
+import pool, { testDatabaseConnection } from "./config/db.js";
+import { config } from "./config/env.js";
+import { initSocket } from "./realtime/socket.js";
 
 const startServer = async () => {
-  try {
-    await testDatabaseConnection();
+  await testDatabaseConnection();
 
-    const server = http.createServer(app);
+  const server = http.createServer(app);
 
-    server.listen(PORT, () => {
-      console.log(
-        `Crisis Care Backend running on port ${PORT}`
-      );
-    });
-  } catch (error) {
-    console.error(error);
-    process.exit(1);
-  }
+  initSocket(server);
+
+  server.listen(config.port, () => {
+    console.log(`Crisis Care backend listening on port ${config.port}`);
+  });
+
+  const shutdown = () => {
+    server.close(() => pool.end().finally(() => process.exit(0)));
+  };
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 };
 
-startServer();
+startServer().catch((error) => {
+  console.error("Failed to start server:", error.message);
+  process.exit(1);
+});

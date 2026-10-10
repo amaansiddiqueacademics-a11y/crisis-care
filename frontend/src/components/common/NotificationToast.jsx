@@ -1,44 +1,25 @@
 import React from 'react';
+import { AlertCircle, CheckCircle2, Info, Siren } from 'lucide-react';
 import { useCrisisCare } from '../../context/CrisisCareContext';
-import { CheckCircle2, AlertCircle, Info, Siren, X } from 'lucide-react';
+
+const STYLE = {
+  emergency: ['bg-red-700 text-white border-red-800', Siren],
+  success: ['bg-emerald-700 text-white border-emerald-800', CheckCircle2],
+  warning: ['bg-amber-400 text-stone-950 border-amber-500', AlertCircle],
+  info: ['bg-stone-900 text-white border-stone-700', Info],
+};
 
 export const NotificationToast = () => {
-  const { toastMessage, showToast } = useCrisisCare();
-
+  const { toastMessage } = useCrisisCare();
   if (!toastMessage) return null;
-
-  const getStyle = () => {
-    switch (toastMessage.type) {
-      case 'emergency':
-        return 'bg-emergency-red text-white border-emergency-dark shadow-emergency';
-      case 'success':
-        return 'bg-teal-deep text-white border-teal-primary/40 shadow-elevated';
-      case 'warning':
-        return 'bg-status-amber text-stone-900 border-amber-600 shadow-md';
-      default:
-        return 'bg-teal-primary text-white border-teal-light/20 shadow-md';
-    }
-  };
-
-  const getIcon = () => {
-    switch (toastMessage.type) {
-      case 'emergency':
-        return <Siren className="w-5 h-5 animate-bounce" />;
-      case 'success':
-        return <CheckCircle2 className="w-5 h-5 text-emerald-300" />;
-      case 'warning':
-        return <AlertCircle className="w-5 h-5" />;
-      default:
-        return <Info className="w-5 h-5 text-sky-200" />;
-    }
-  };
+  const [style, Icon] = STYLE[toastMessage.type] || STYLE.info;
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 max-w-md w-full animate-slide-up">
-      <div className={`flex items-start gap-3 p-4 rounded-xl border ${getStyle()}`}>
-        <div className="shrink-0 mt-0.5">{getIcon()}</div>
-        <div className="flex-1">
-          <h4 className="font-bold text-sm tracking-wide">{toastMessage.title}</h4>
+    <div className="fixed bottom-24 sm:bottom-5 right-3 left-3 sm:left-auto z-[1000] sm:max-w-md" role="status" aria-live="polite">
+      <div className={`flex items-start gap-3 p-4 rounded-xl border shadow-lg ${style}`}>
+        <Icon className="w-5 h-5 shrink-0 mt-0.5" />
+        <div>
+          <h4 className="font-bold text-sm">{toastMessage.title}</h4>
           <p className="text-xs mt-0.5 opacity-90 leading-relaxed">{toastMessage.message}</p>
         </div>
       </div>

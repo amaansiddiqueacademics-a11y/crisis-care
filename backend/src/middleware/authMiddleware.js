@@ -1,147 +1,47 @@
 import jwt from "jsonwebtoken";
 
+import { config } from "../config/env.js";
+import { forbidden, unauthorized } from "../utils/AppError.js";
 
-/*
-|--------------------------------------------------------------------------
-| Authentication Middleware
-|--------------------------------------------------------------------------
-*/
+export const ROLES = Object.freeze({
+  HOSPITAL_ADMIN: "HOSPITAL_ADMIN",
+  AMBULANCE_CREW: "AMBULANCE_CREW",
+  ADMIN: "ADMIN"
+});
 
-export const authenticate = (
-    req,
-    res,
-    next
-) => {
+export const verifyToken = (token) =>
+  jwt.verify(token, config.jwtSecret);
 
-    try {
+/**
+ * Requires `Authorization: Bearer <token>` and attaches the decoded payload to req.user.
+ */
+export const authenticate = (req, _res, next) => {
+  const header = req.headers.authorization || "";
+  const [scheme, token] = header.split(" ");
 
-        const authHeader =
-            req.headers.authorization;
+  if (scheme !== "Bearer" || !token) {
+    return next(unauthorized("Authentication token required"));
+  }
 
-
-        if (!authHeader) {
-
-            return res.status(401).json({
-
-                success: false,
-
-                message:
-                    "Authentication token required"
-            });
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Expected:
-        |
-        | Authorization: Bearer TOKEN
-        |--------------------------------------------------------------------------
-        */
-
-        const parts =
-            authHeader.split(" ");
-
-
-        if (
-            parts.length !== 2 ||
-            parts[0] !== "Bearer"
-        ) {
-
-            return res.status(401).json({
-
-                success: false,
-
-                message:
-                    "Invalid authorization format"
-            });
-        }
-
-
-        const token =
-            parts[1];
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Verify token
-        |--------------------------------------------------------------------------
-        */
-
-        const decoded =
-            jwt.verify(
-                token,
-                process.env.JWT_SECRET
-            );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Attach user to request
-        |--------------------------------------------------------------------------
-        */
-
-        req.user = decoded;
-
-
-        next();
-
-    } catch (error) {
-
-        return res.status(401).json({
-
-            success: false,
-
-            message:
-                "Invalid or expired token"
-        });
-    }
+  try {
+    req.user = verifyToken(token);
+    return next();
+  } catch {
+    return next(unauthorized("Invalid or expired token"));
+  }
 };
 
+/**
+ * Role-based authorization; use after `authenticate`.
+ */
+export const authorize = (...allowedRoles) => (req, _res, next) => {
+  if (!req.user) {
+    return next(unauthorized());
+  }
 
-/*
-|--------------------------------------------------------------------------
-| Role Authorization
-|--------------------------------------------------------------------------
-*/
+  if (!allowedRoles.includes(req.user.role)) {
+    return next(forbidden());
+  }
 
-export const authorize =
-    (...allowedRoles) => {
-
-        return (
-            req,
-            res,
-            next
-        ) => {
-
-            if (!req.user) {
-
-                return res.status(401).json({
-
-                    success: false,
-
-                    message:
-                        "Authentication required"
-                });
-            }
-
-
-            if (
-                !allowedRoles.includes(
-                    req.user.role
-                )
-            ) {
-
-                return res.status(403).json({
-
-                    success: false,
-
-                    message:
-                        "Access denied"
-                });
-            }
-
-
-            next();
-        };
-    };
+  return next();
+};

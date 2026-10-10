@@ -1,59 +1,50 @@
-import express from "express";
 import cors from "cors";
+import express from "express";
+import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
-import rateLimit from "express-rate-limit";
-import authRoutes from "./routes/authRoutes.js";
+
+import { config } from "./config/env.js";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+import apiRoutes from "./routes/index.js";
+
 const app = express();
 
-app.use(
-  helmet({
-    crossOriginResourcePolicy: false
-  })
-);
+if (config.trustProxy) {
+  app.set("trust proxy", 1);
+}
+
+app.use(helmet());
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: config.frontendOrigins,
     credentials: true
   })
 );
 
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true }));
+// Large enough for one compressed photo attached to an emergency report.
+app.use(express.json({ limit: "600kb" }));
 
-app.use(morgan("dev"));
+if (process.env.NODE_ENV !== "test") {
+  app.use(morgan(config.isProduction ? "combined" : "dev"));
+}
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  limit: 1000,
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many requests. Please try again later."
-  }
+  message: { success: false, message: "Too many requests. Please try again later." }
 });
 
-app.use("/api", apiLimiter);
-app.use(
-    "/api/v1/auth",
-    authRoutes
-);
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Crisis Care Backend API is running"
-  });
+app.get("/", (_req, res) => {
+  res.json({ success: true, message: "Crisis Care Backend API is running" });
 });
 
-app.get("/api/v1/health", (req, res) => {
-  res.json({
-    success: true,
-    service: "crisis-care-backend",
-    status: "healthy",
-    timestamp: new Date().toISOString()
-  });
-});
+app.use("/api/v1", apiLimiter, apiRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -8,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { parse } from "csv-parse/sync";
 
 import pool from "../config/db.js";
+import { config } from "../config/env.js";
 
 
 /*
@@ -312,7 +311,14 @@ async function seedDatabase() {
 
     let credentials = [];
 
-    if (fs.existsSync(credentialsFile)) {
+    if (
+      config.isProduction &&
+      process.env.SEED_ALLOW_DEMO_CREDENTIALS !== "true"
+    ) {
+      console.log(
+        "Production: skipping demo hospital credentials CSV (set SEED_ALLOW_DEMO_CREDENTIALS=true to override)."
+      );
+    } else if (fs.existsSync(credentialsFile)) {
 
       const csvContent = fs.readFileSync(
         credentialsFile,
@@ -424,7 +430,9 @@ async function seedDatabase() {
           google_place_id,
           coord_quality,
           verify_pin,
-          source
+          source,
+          zone,
+          ownership
         )
         VALUES
         (
@@ -446,7 +454,9 @@ async function seedDatabase() {
           $11,
           $12,
           $13,
-          $14
+          $14,
+          $15,
+          $16
         )
 
         ON CONFLICT (seed_key)
@@ -465,6 +475,8 @@ async function seedDatabase() {
           coord_quality = EXCLUDED.coord_quality,
           verify_pin = EXCLUDED.verify_pin,
           source = EXCLUDED.source,
+          zone = EXCLUDED.zone,
+          ownership = EXCLUDED.ownership,
           updated_at = CURRENT_TIMESTAMP
         `,
         [
@@ -480,10 +492,22 @@ async function seedDatabase() {
           hospital.suggested_tier,
           hospital.google_place_id,
           hospital.coord_quality,
-          String(hospital.verify_pin ?? ""),
-          hospital.source
+          Boolean(hospital.verify_pin),
+          hospital.source,
+          hospital.zone || hospital.city,
+          hospital.ownership || null
         ]
       );
+
+      // Service profile: never overwrites what a hospital's staff have set.
+      for (const service of hospital.services || []) {
+        await client.query(
+          `INSERT INTO hospital_services (hospital_id, service_code)
+           SELECT hospital_id, $2 FROM hospitals WHERE seed_key = $1
+           ON CONFLICT (hospital_id, service_code) DO NOTHING`,
+          [hospital.seed_key, service]
+        );
+      }
 
       hospitalCount++;
     }
@@ -611,9 +635,7 @@ async function seedDatabase() {
             hospital_id,
             resource_id
           )
-          DO UPDATE SET
-            quantity = EXCLUDED.quantity,
-            last_updated = CURRENT_TIMESTAMP
+          DO NOTHING
           `,
           [
             hospital.hospital_id,
@@ -707,9 +729,7 @@ async function seedDatabase() {
             hospital_id,
             resource_id
           )
-          DO UPDATE SET
-            quantity = EXCLUDED.quantity,
-            last_updated = CURRENT_TIMESTAMP
+          DO NOTHING
           `,
           [
             hospital.hospital_id,
@@ -808,6 +828,15 @@ async function seedDatabase() {
 
     /*
     |--------------------------------------------------------------------------
+    | Administrator, ambulances and crews
+    |--------------------------------------------------------------------------
+    */
+
+    await seedAdmin(client);
+    const ambulanceCount = await seedAmbulances(client);
+
+    /*
+    |--------------------------------------------------------------------------
     | Commit
     |--------------------------------------------------------------------------
     */
@@ -821,6 +850,7 @@ async function seedDatabase() {
     console.log("======================================");
     console.log("");
     console.log(`Hospitals: ${hospitalCount}`);
+    console.log(`Ambulances: ${ambulanceCount}`);
     console.log(`Inventory rows: ${inventoryCount}`);
     console.log(
       `Hospital accounts: ${credentials.length}`
@@ -846,6 +876,139 @@ async function seedDatabase() {
 
     await pool.end();
   }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| System administrator (credentials come from the environment)
+|--------------------------------------------------------------------------
+*/
+
+async function seedAdmin(client) {
+  const email = process.env.SEED_ADMIN_EMAIL;
+  const password = process.env.SEED_ADMIN_PASSWORD;
+
+  if (!email || !password) {
+    console.log(
+      "SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD not set: no admin account created."
+    );
+    return;
+  }
+
+  if (password.length < 10) {
+    throw new Error("SEED_ADMIN_PASSWORD must be at least 10 characters.");
+  }
+
+  const hash = await bcrypt.hash(password, 12);
+
+  // Only the password hash and active flag are refreshed for an existing admin.
+  await client.query(
+    `
+    INSERT INTO users (full_name, email, password_hash, role)
+    VALUES ($1, LOWER($2), $3, 'ADMIN')
+    ON CONFLICT (email)
+    DO UPDATE SET password_hash = EXCLUDED.password_hash, role = 'ADMIN', is_active = TRUE
+    `,
+    [process.env.SEED_ADMIN_NAME || "System Administrator", email, hash]
+  );
+
+  console.log(`Admin account ready: ${email.toLowerCase()}`);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Ambulances + crews
+|--------------------------------------------------------------------------
+|
+| Fleet data is NOT part of the hospital dataset, so these are development
+| fixtures: each unit is stationed at a real seeded hospital's coordinates.
+| Crew login passwords come from SEED_CREW_PASSWORD.
+|
+*/
+
+// One or two units per zone so every part of the region has cover.
+const AMBULANCE_FIXTURES = [
+  { callsign: "MUM-ALS-01", station: "kem_mumbai", crew: "Asha Kulkarni" },
+  { callsign: "MUM-ALS-02", station: "sion_mumbai", crew: "Rohan Deshmukh" },
+  { callsign: "MUM-BLS-03", station: "jj_mumbai", crew: "Farah Sheikh" },
+  { callsign: "MUM-BLS-04", station: "nair_mumbai", crew: "Vikram Patil" },
+  { callsign: "WST-ALS-05", station: "cooper_mumbai", crew: "Neha Joshi" },
+  { callsign: "WST-BLS-06", station: "shatabdi_kandivali", crew: "Imran Khan" },
+  { callsign: "CEN-ALS-07", station: "rajawadi_mumbai", crew: "Sunita Pawar" },
+  { callsign: "THN-ALS-08", station: "csmh_kalwa_thane", crew: "Ganesh More" },
+  { callsign: "NVM-ALS-09", station: "nmmc_vashi", crew: "Priya Nair" },
+  { callsign: "NVM-BLS-10", station: "mgm_kamothe", crew: "Sachin Patil" },
+  { callsign: "PAL-BLS-11", station: "rh_palghar", crew: "Kiran Vartha" },
+  { callsign: "PAL-BLS-12", station: "sdh_dahanu", crew: "Mahesh Dhodi" },
+  { callsign: "VSI-ALS-13", station: "dmpetit_vasai", crew: "Joseph D'Souza" }
+];
+
+async function seedAmbulances(client) {
+  const password = process.env.SEED_CREW_PASSWORD;
+
+  if (!password) {
+    console.log("SEED_CREW_PASSWORD not set: no ambulances/crews created.");
+    return 0;
+  }
+
+  if (password.length < 10) {
+    throw new Error("SEED_CREW_PASSWORD must be at least 10 characters.");
+  }
+
+  const hash = await bcrypt.hash(password, 12);
+  let count = 0;
+
+  for (const unit of AMBULANCE_FIXTURES) {
+    const station = await client.query(
+      "SELECT latitude, longitude, zone FROM hospitals WHERE seed_key = $1",
+      [unit.station]
+    );
+
+    if (station.rows.length === 0) {
+      console.log(`Station hospital ${unit.station} not found; skipping ${unit.callsign}`);
+      continue;
+    }
+
+    const { latitude, longitude, zone } = station.rows[0];
+
+    // Existing positions/status are kept so re-seeding never moves a live unit.
+    const ambulance = await client.query(
+      `
+      INSERT INTO ambulances
+        (callsign, registration_number, ambulance_type, latitude, longitude, location, zone)
+      VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($5, $4), 4326)::geography, $6)
+      ON CONFLICT (callsign) DO UPDATE SET zone = EXCLUDED.zone
+      RETURNING ambulance_id
+      `,
+      [
+        unit.callsign,
+        `DEV-${unit.callsign}`,
+        unit.callsign.includes("ALS") ? "ALS" : "BLS",
+        latitude,
+        longitude,
+        zone
+      ]
+    );
+
+    const username = unit.callsign.toLowerCase();
+
+    await client.query(
+      `
+      INSERT INTO ambulance_crew
+        (ambulance_id, employee_code, full_name, role, username, password_hash)
+      VALUES ($1, $2, $3, 'PARAMEDIC', $4, $5)
+      ON CONFLICT (employee_code)
+      DO UPDATE SET password_hash = EXCLUDED.password_hash, ambulance_id = EXCLUDED.ambulance_id
+      `,
+      [ambulance.rows[0].ambulance_id, `EMP-${unit.callsign}`, unit.crew, username, hash]
+    );
+
+    count++;
+  }
+
+  return count;
 }
 
 

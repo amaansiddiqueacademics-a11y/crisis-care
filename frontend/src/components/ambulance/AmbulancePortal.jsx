@@ -1,467 +1,483 @@
-import React, { useState } from 'react';
-import { 
-  Truck, 
-  User, 
-  KeyRound, 
-  Stethoscope, 
-  Navigation, 
-  Hospital, 
-  LogOut, 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Radio, 
-  ChevronRight,
-  ShieldCheck,
-  Building2,
-  AlertTriangle
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  AlertTriangle, Building2, Camera, Check, CheckCircle2, KeyRound, LocateFixed, LogOut, MapPin, Navigation, PhoneCall,
+  Radio, ShieldCheck, Star, Truck, User, XCircle,
 } from 'lucide-react';
 import { useCrisisCare } from '../../context/CrisisCareContext';
+import { useLive } from '../../hooks/useLive';
+import { findCategory } from '../../data/emergencyCategories';
+import { directionsUrl, tel } from '../../data/helplines';
+import { CategoryImage } from '../common/FirstAidSteps';
 import { MapView } from '../common/MapView';
+import { Avatar, ErStatusBadge, ErrorNote, Field, OwnershipBadge, Pill, TriageBadge, timeAgo } from '../common/ui';
 
-export const AmbulancePortal = () => {
-  const { 
-    ambulanceAuth, 
-    loginAmbulance, 
-    logoutAmbulance, 
-    citizenIncident, 
-    hospitals, 
-    emergencies,
-    hospitalDecisions,
-    selectedHospitalForAmbulance,
-    selectHospitalForAmbulance,
-    submitAttendantAssessment,
-    showToast,
-    theme
-  } = useCrisisCare();
+// Extra questions that matter for the hospital choice, per reported category.
+const FINDINGS = {
+  'Cardiac / Chest Pain': [
+    { key: 'stElevation', label: 'ECG shows ST elevation?', type: 'bool' },
+    { key: 'painMinutes', label: 'Chest pain for how many minutes?', type: 'number', max: 1440 },
+  ],
+  'Suspected Stroke': [
+    { key: 'onsetHours', label: 'Hours since symptoms started', type: 'number', max: 72, step: 0.5 },
+    { key: 'faceDroop', label: 'Face drooping?', type: 'bool' },
+    { key: 'armWeakness', label: 'Arm weakness?', type: 'bool' },
+    { key: 'speechSlurred', label: 'Speech slurred?', type: 'bool' },
+  ],
+  'Traffic Accident': [
+    { key: 'spinalInjury', label: 'Possible spine / neck injury?', type: 'bool' },
+    { key: 'gcs', label: 'GCS (3-15)', type: 'number', min: 3, max: 15 },
+  ],
+  'Fall from Height': [
+    { key: 'spinalInjury', label: 'Possible spine / neck injury?', type: 'bool' },
+    { key: 'gcs', label: 'GCS (3-15)', type: 'number', min: 3, max: 15 },
+  ],
+  'Severe Burns': [
+    { key: 'burnPercent', label: '% of body burned', type: 'number', max: 100 },
+    { key: 'airwayBurn', label: 'Burns to face / airway?', type: 'bool' },
+  ],
+  'Pregnancy Emergency': [
+    { key: 'weeks', label: 'Weeks pregnant', type: 'number', max: 45 },
+    { key: 'heavyBleeding', label: 'Heavy vaginal bleeding?', type: 'bool' },
+    { key: 'contractionsMin', label: 'Minutes between contractions', type: 'number', max: 60 },
+  ],
+  'Snakebite & Animal Bite': [
+    { key: 'hoursSinceBite', label: 'Hours since bite', type: 'number', max: 72, step: 0.5 },
+    { key: 'neuroSigns', label: 'Droopy eyelids / trouble swallowing?', type: 'bool' },
+    { key: 'swelling', label: 'Spreading swelling?', type: 'bool' },
+  ],
+  Poisoning: [
+    { key: 'substance', label: 'What was taken', type: 'text' },
+    { key: 'hoursSince', label: 'Hours since', type: 'number', max: 72, step: 0.5 },
+  ],
+  'Pediatric Emergency': [
+    { key: 'ageYears', label: 'Age in years', type: 'number', max: 18 },
+    { key: 'weightKg', label: 'Weight (kg)', type: 'number', max: 120 },
+  ],
+};
 
-  const isRed = theme === 'red';
+const AGES = { INFANT: 'Baby', CHILD: 'Child', TEEN: 'Teen', ADULT: 'Adult', SENIOR: 'Senior 60+' };
 
-  // Login form state
-  const [badgeId, setBadgeId] = useState('PARA-409');
-  const [password, setPassword] = useState('paramedic123');
-  const [showPassword, setShowPassword] = useState(false);
+const Choice = ({ label, value, onChange, options }) => (
+  <div>
+    <p className="cc-label">{label}</p>
+    <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}>
+      {options.map(([id, text]) => (
+        <button key={id} type="button" onClick={() => onChange(id)} aria-pressed={value === id} className={`rounded-xl border px-2 py-2.5 text-xs font-bold transition ${value === id ? 'border-red-600 bg-red-600 text-white' : 'border-stone-200 bg-stone-50 hover:bg-stone-100'}`}>
+          {text}
+        </button>
+      ))}
+    </div>
+  </div>
+);
 
-  // Clinical assessment questions
-  const [isConscious, setIsConscious] = useState('semi-conscious');
-  const [isBreathingProperly, setIsBreathingProperly] = useState('labored');
-  const [pulseStatus, setPulseStatus] = useState('rapid');
-  const [severeBleeding, setSevereBleeding] = useState(true);
-  const [pulseBpm, setPulseBpm] = useState(108);
-  const [spo2, setSpo2] = useState(91);
-  const [bp, setBp] = useState('115/78');
+const Login = () => {
+  const { login, showToast } = useCrisisCare();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  // If not logged in, show paramedic authentication screen
-  if (!ambulanceAuth) {
-    return (
-      <div className="max-w-md mx-auto py-8">
-        <div className="bg-surface-card rounded-3xl border border-surface-border p-6 sm:p-8 shadow-elevated space-y-6">
-          <div className="text-center">
-            <div className={`w-14 h-14 rounded-2xl text-white flex items-center justify-center mx-auto shadow-md mb-3 ${
-              isRed ? 'bg-[#B71C1C]' : 'bg-amber-500'
-            }`}>
-              <Truck className="w-8 h-8" />
-            </div>
-            <h1 className="text-2xl font-black text-slate-900">Ambulance Attendant Login</h1>
-            <p className="text-xs text-surface-muted mt-1">
-              Authorized Paramedic CAD Telemetry Portal
-            </p>
-          </div>
-
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              loginAmbulance(badgeId, password);
-            }} 
-            className="space-y-4"
-          >
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Paramedic Badge ID / Email
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  value={badgeId}
-                  onChange={(e) => setBadgeId(e.target.value)}
-                  style={{ color: '#0f172a', backgroundColor: '#ffffff', WebkitTextFillColor: '#0f172a' }}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-bold text-slate-900 bg-white rounded-xl border border-slate-300 outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Access Password
-              </label>
-              <div className="relative">
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={{ color: '#0f172a', backgroundColor: '#ffffff', WebkitTextFillColor: '#0f172a' }}
-                  className="w-full pl-9 pr-12 py-2.5 text-xs font-bold text-slate-900 bg-white rounded-xl border border-slate-300 outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-[11px] font-bold text-red-600"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-[11px] text-surface-muted flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Password: <strong>paramedic123</strong> • Secure clinical link</span>
-            </div>
-
-            <button
-              type="submit"
-              className={`w-full text-white font-black text-xs py-3 rounded-xl shadow-sm transition ${
-                isRed ? 'bg-[#B71C1C] hover:bg-[#8B0000]' : 'bg-teal-primary hover:bg-teal-hover'
-              }`}
-            >
-              AUTHENTICATE ATTENDANT SESSION
-            </button>
-          </form>
-
-          <div className="pt-3 border-t border-surface-border text-center">
-            <button
-              onClick={() => loginAmbulance('PARA-409', 'paramedic123')}
-              className="text-xs font-extrabold text-red-700 bg-red-50 hover:bg-red-100 py-2 px-4 rounded-xl border border-red-200 transition"
-            >
-              ⚡ Quick Demo 1-Click Login (Dr. Ananya Roy - ALS Lead)
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const currentIncident = 
-    emergencies.find((e) => e.assignedAmbulanceId === ambulanceAuth.id || e.assignedAmbulanceCallsign === ambulanceAuth.callsign) ||
-    (citizenIncident?.assignedAmbulanceId === ambulanceAuth.id ? citizenIncident : null) ||
-    citizenIncident ||
-    emergencies[0];
-  const activeHospital = selectedHospitalForAmbulance || (currentIncident?.destinationHospital ? currentIncident.destinationHospital : null);
-  const activeDecision = activeHospital ? hospitalDecisions[activeHospital.id] : null;
-
-  const handleAssessmentSubmit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    submitAttendantAssessment(currentIncident ? currentIncident.id : 'inc-901', {
-      isConscious,
-      isBreathingProperly,
-      pulseStatus,
-      severeBleeding,
-      pulseBpm,
-      spo2,
-      bp
-    });
+    setBusy(true);
+    try {
+      const s = await login('ambulance', username.trim().toLowerCase(), password);
+      showToast('Signed in', `${s.user.fullName} on ${s.user.ambulance.callsign}`, 'success');
+    } catch (err) {
+      showToast('Sign-in failed', err.message, 'warning');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Attendant Header Bar */}
-      <div className={`text-white p-5 sm:p-6 rounded-3xl shadow-subtle flex flex-wrap items-center justify-between gap-4 ${
-        isRed ? 'bg-[#8B0000]' : 'bg-teal-deep'
-      }`}>
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center font-bold shadow-md">
-            <Truck className="w-7 h-7" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="bg-white/20 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded">
-                Active Responder Unit
-              </span>
-              <h1 className="text-xl sm:text-2xl font-black">{ambulanceAuth.name}</h1>
-            </div>
-            <p className="text-xs text-white/80 mt-0.5">
-              Assigned: <strong>{ambulanceAuth.callsign}</strong> • Badge: <span className="font-mono">{ambulanceAuth.badgeId}</span>
-            </p>
-          </div>
+    <div className="max-w-md mx-auto py-8">
+      <form onSubmit={submit} className="cc-card p-8 space-y-5 shadow-lg">
+        <div className="text-center">
+          <span className="w-14 h-14 rounded-2xl bg-red-700 text-white flex items-center justify-center mx-auto mb-3"><Truck className="w-7 h-7" /></span>
+          <h1 className="text-2xl font-black">Ambulance crew</h1>
+          <p className="text-sm text-stone-500 mt-1">Sign in with your unit's call sign.</p>
         </div>
+        <div>
+          <label className="cc-label" htmlFor="crew-user">Unit call sign</label>
+          <div className="relative"><User className="w-4 h-4 text-stone-400 absolute left-3 top-3.5" /><input id="crew-user" value={username} onChange={(e) => setUsername(e.target.value)} className="cc-input pl-9" placeholder="e.g. mum-als-01" autoComplete="username" required /></div>
+        </div>
+        <div>
+          <label className="cc-label" htmlFor="crew-pass">Password</label>
+          <div className="relative"><KeyRound className="w-4 h-4 text-stone-400 absolute left-3 top-3.5" /><input id="crew-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="cc-input pl-9" autoComplete="current-password" required /></div>
+        </div>
+        <button type="submit" disabled={busy} className="cc-btn-dark w-full !py-3">{busy ? 'Signing in…' : 'Sign in'}</button>
+        <p className="text-xs text-stone-400 text-center flex items-center justify-center gap-1"><ShieldCheck className="w-3.5 h-3.5" /> Development units: mum-als-01 … vsi-als-13, password = SEED_CREW_PASSWORD in backend/.env</p>
+      </form>
+    </div>
+  );
+};
 
-        <button
-          onClick={logoutAmbulance}
-          className="text-xs font-bold text-red-200 hover:text-white bg-white/10 hover:bg-white/20 px-3.5 py-2 rounded-xl transition flex items-center gap-1.5"
-        >
-          <LogOut className="w-3.5 h-3.5" /> Logout Session
-        </button>
+/** Shares the unit's GPS every 15 s while the switch is on, so dispatch and the patient see it move. */
+const useGpsShare = (authed, enabled) => {
+  const [last, setLast] = useState(null);
+  const lastSent = useRef(0);
+  useEffect(() => {
+    if (!enabled || !navigator.geolocation) return undefined;
+    const id = navigator.geolocation.watchPosition(
+      ({ coords }) => {
+        if (Date.now() - lastSent.current < 15000) return;
+        lastSent.current = Date.now();
+        authed('ambulance', '/ambulance/location', { method: 'PUT', body: { lat: coords.latitude, lng: coords.longitude } })
+          .then(() => setLast(new Date()))
+          .catch(() => {});
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 10000 },
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, [authed, enabled]);
+  return last;
+};
+
+const Assessment = ({ emergency, onSaved }) => {
+  const { authed, showToast } = useCrisisCare();
+  const [consciousness, setConsciousness] = useState('conscious');
+  const [breathing, setBreathing] = useState('normal');
+  const [pulseStatus, setPulseStatus] = useState('normal');
+  const [severeBleeding, setSevereBleeding] = useState(false);
+  const [vitals, setVitals] = useState({ heartRate: '', spo2: '', systolicBp: '', diastolicBp: '' });
+  const [findings, setFindings] = useState({});
+  const [notes, setNotes] = useState('');
+  const [busy, setBusy] = useState(false);
+  const questions = FINDINGS[emergency.type] || [];
+
+  const num = (v) => (v === '' || v == null ? null : Number(v));
+
+  const save = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const categoryFindings = Object.fromEntries(
+        Object.entries(findings).filter(([, v]) => v !== '' && v != null).map(([k, v]) => [k, typeof v === 'string' && questions.find((q) => q.key === k)?.type === 'number' ? Number(v) : v]),
+      );
+      await authed('ambulance', '/ambulance/emergency/assessment', {
+        method: 'POST',
+        body: {
+          consciousness, breathing, pulseStatus, severeBleeding,
+          heartRate: num(vitals.heartRate), spo2: num(vitals.spo2), systolicBp: num(vitals.systolicBp), diastolicBp: num(vitals.diastolicBp),
+          notes: notes.trim() || null,
+          categoryFindings,
+        },
+      });
+      showToast('Assessment saved', 'Hospitals below are re-ranked for this patient.', 'success');
+      onSaved();
+    } catch (err) {
+      showToast('Not saved', err.message, 'warning');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="cc-card p-5 space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-black">On-scene assessment</h2>
+          <p className="text-xs text-stone-500">Sent to the hospital you ask. Triage colour is computed from it.</p>
+        </div>
+        {emergency.assessment && <TriageBadge level={emergency.assessment.triage} />}
+      </div>
+      <Choice label="Conscious?" value={consciousness} onChange={setConsciousness} options={[['conscious', 'Alert'], ['semi-conscious', 'Drowsy'], ['unconscious', 'Unconscious']]} />
+      <Choice label="Breathing" value={breathing} onChange={setBreathing} options={[['normal', 'Normal'], ['labored', 'Laboured'], ['not-breathing', 'Not breathing']]} />
+      <Choice label="Pulse" value={pulseStatus} onChange={setPulseStatus} options={[['normal', 'Normal'], ['rapid', 'Rapid'], ['weak', 'Weak'], ['none', 'None']]} />
+      <Choice label="Severe bleeding?" value={severeBleeding ? 'y' : 'n'} onChange={(v) => setSevereBleeding(v === 'y')} options={[['n', 'No'], ['y', 'Yes']]} />
+
+      <div className="grid grid-cols-4 gap-2">
+        {[['heartRate', 'Pulse', 300], ['spo2', 'SpO2 %', 100], ['systolicBp', 'BP sys', 300], ['diastolicBp', 'BP dia', 200]].map(([k, label, max]) => (
+          <div key={k}>
+            <label className="cc-label" htmlFor={k}>{label}</label>
+            <input id={k} type="number" inputMode="numeric" min={0} max={max} value={vitals[k]} onChange={(e) => setVitals((v) => ({ ...v, [k]: e.target.value }))} className="cc-input !px-2" />
+          </div>
+        ))}
       </div>
 
-      {/* Main Grid: On-Scene Clinical Questions & Nearest Hospital Selector / Tracking */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: The 3 Clinical Assessment Questions */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="bg-surface-card rounded-3xl border border-surface-border p-5 sm:p-6 shadow-subtle space-y-4">
-            <div className="border-b border-surface-border pb-3">
-              <span className="text-xs font-black uppercase text-red-700 tracking-wider">
-                Clinical On-Scene Assessment
-              </span>
-              <h2 className="text-lg font-black text-slate-900 mt-0.5">
-                Examine Patient & Transmit to Hospital
-              </h2>
-              <p className="text-xs text-surface-muted">
-                Answer these 3 clinical questions. When you click a hospital on the right, your assessment is sent to their ER desk.
-              </p>
-            </div>
-
-            <form onSubmit={handleAssessmentSubmit} className="space-y-4">
-              {/* Question 1 */}
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-800 mb-1.5">
-                  1. Is the person conscious? <span className="text-emergency-red">*</span>
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'conscious', label: 'Conscious & Alert' },
-                    { id: 'semi-conscious', label: 'Semi-conscious' },
-                    { id: 'unconscious', label: 'Unconscious' }
-                  ].map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setIsConscious(opt.id)}
-                      className={`p-2.5 rounded-xl border text-xs font-bold transition text-center ${
-                        isConscious === opt.id
-                          ? 'border-red-600 bg-red-600 text-white shadow-xs'
-                          : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+      {questions.length > 0 && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 space-y-3">
+          <p className="text-xs font-black uppercase text-amber-800">{findCategory(emergency.type).label}: decides the hospital</p>
+          {questions.map((q) =>
+            q.type === 'bool' ? (
+              <Choice key={q.key} label={q.label} value={findings[q.key] === true ? 'y' : findings[q.key] === false ? 'n' : null} onChange={(v) => setFindings((f) => ({ ...f, [q.key]: v === 'y' }))} options={[['n', 'No'], ['y', 'Yes']]} />
+            ) : (
+              <div key={q.key}>
+                <label className="cc-label" htmlFor={q.key}>{q.label}</label>
+                <input id={q.key} type={q.type} min={q.min ?? 0} max={q.max} step={q.step || 1} maxLength={80} value={findings[q.key] ?? ''} onChange={(e) => setFindings((f) => ({ ...f, [q.key]: e.target.value }))} className="cc-input" />
               </div>
-
-              {/* Question 2 */}
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-800 mb-1.5">
-                  2. Is the person breathing properly? <span className="text-emergency-red">*</span>
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'normal', label: 'Normal' },
-                    { id: 'labored', label: 'Labored / Gasping' },
-                    { id: 'not-breathing', label: 'Not Breathing' }
-                  ].map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setIsBreathingProperly(opt.id)}
-                      className={`p-2.5 rounded-xl border text-xs font-bold transition text-center ${
-                        isBreathingProperly === opt.id
-                          ? 'border-red-600 bg-red-600 text-white shadow-xs'
-                          : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Question 3 */}
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-800 mb-1.5">
-                  3. Is the pulse normal? <span className="text-emergency-red">*</span>
-                </label>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {[
-                    { id: 'normal', label: 'Normal' },
-                    { id: 'rapid', label: 'Rapid (>100)' },
-                    { id: 'weak', label: 'Weak (<60)' },
-                    { id: 'none', label: 'No Pulse' }
-                  ].map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setPulseStatus(opt.id)}
-                      className={`p-2 rounded-xl border text-xs font-bold transition text-center ${
-                        pulseStatus === opt.id
-                          ? 'border-red-600 bg-red-600 text-white shadow-xs'
-                          : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Additional vital controls */}
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block">Severe Bleeding?</span>
-                    <span className="text-[10px] text-surface-muted">Requires transfusion</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSevereBleeding(!severeBleeding)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition ${
-                      severeBleeding ? 'bg-emergency-red text-white' : 'bg-white border text-slate-700'
-                    }`}
-                  >
-                    {severeBleeding ? 'YES' : 'NO'}
-                  </button>
-                </div>
-
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block">Pulse & SpO2</span>
-                    <span className="text-[10px] text-surface-muted">Oximeter</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-slate-800">{pulseBpm} bpm • {spo2}%</span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className={`w-full text-white font-extrabold text-xs py-3 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition ${
-                  isRed ? 'bg-[#B71C1C] hover:bg-[#8B0000]' : 'bg-teal-primary hover:bg-teal-hover'
-                }`}
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>SAVE CLINICAL ASSESSMENT</span>
-              </button>
-            </form>
-          </div>
-        </div>
-
-        {/* Right Column: NEAREST HOSPITALS (NAMES ONLY - NO RESOURCES!) & TRACKING MAP */}
-        <div className="lg:col-span-6 space-y-4">
-          {/* NEAREST HOSPITALS LIST */}
-          <div className="bg-surface-card rounded-3xl border border-surface-border p-5 sm:p-6 shadow-subtle space-y-3">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <div>
-                <h3 className="font-black text-slate-900 text-base">Select Nearest Hospital Destination</h3>
-                <p className="text-xs text-surface-muted">
-                  Click a hospital name below to start tracking and query their emergency desk:
-                </p>
-              </div>
-              <span className="text-[11px] font-bold text-slate-500">
-                {hospitals.length} Nearby Centers
-              </span>
-            </div>
-
-            {/* List of Hospitals: Names & Distance ONLY (No resource counts!) */}
-            <div className="space-y-2.5">
-              {hospitals.map((hosp) => {
-                const isSelected = activeHospital?.id === hosp.id;
-                const decision = hospitalDecisions[hosp.id];
-                const isHospDeclined = decision === 'declined';
-                const isHospAccepted = decision === 'accepted';
-
-                return (
-                  <div
-                    key={hosp.id}
-                    onClick={() => selectHospitalForAmbulance(hosp, currentIncident?.id)}
-                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between gap-3 ${
-                      isSelected
-                        ? isHospDeclined
-                          ? 'border-red-500 bg-red-50/80 ring-2 ring-red-400'
-                          : isHospAccepted
-                            ? 'border-emerald-500 bg-emerald-50/80 ring-2 ring-emerald-400'
-                            : 'border-red-600 bg-red-50/50 ring-2 ring-red-600/30'
-                        : isHospDeclined
-                          ? 'border-red-200 bg-red-50/30 opacity-70'
-                          : 'border-slate-200 bg-slate-50/60 hover:bg-slate-100 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        isSelected 
-                          ? isHospDeclined ? 'bg-red-600 text-white' : isHospAccepted ? 'bg-emerald-600 text-white' : 'bg-red-700 text-white'
-                          : 'bg-white text-slate-700 border border-slate-200'
-                      }`}>
-                        <Building2 className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="font-black text-slate-900 text-sm">{hosp.name}</h4>
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
-                          <span>{hosp.distanceKm} km away</span>
-                          <span>•</span>
-                          <span>ETA ~{hosp.estimatedMinutes} mins</span>
-                          <span>•</span>
-                          <span>{hosp.address}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Status badge */}
-                    <div className="shrink-0 text-right">
-                      {isHospDeclined ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-white bg-red-600 px-2.5 py-1 rounded-full shadow-xs">
-                          <XCircle className="w-3 h-3" />
-                          Declined: No Resources
-                        </span>
-                      ) : isHospAccepted ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-white bg-emerald-600 px-2.5 py-1 rounded-full shadow-xs">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Accepted / Reserved
-                        </span>
-                      ) : isSelected ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-red-700 bg-white px-2.5 py-1 rounded-full border border-red-300">
-                          <Radio className="w-3 h-3 text-red-600 animate-pulse" />
-                          Tracking & Querying ER
-                        </span>
-                      ) : (
-                        <span className="text-xs font-bold text-slate-600 group-hover:text-red-700 flex items-center gap-1">
-                          Select <ChevronRight className="w-3.5 h-3.5" />
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Clean High Tracking Map (Origin to Selected Hospital) */}
-          {activeHospital ? (
-            <div className="bg-surface-card rounded-3xl border border-surface-border p-4 shadow-subtle space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Navigation className="w-4 h-4 text-emergency-red animate-pulse" />
-                  <h3 className="font-black text-slate-900 text-xs sm:text-sm">
-                    {activeDecision === 'declined' ? (
-                      <span className="text-red-700">Declined by {activeHospital.name} — Please Select Another Hospital!</span>
-                    ) : activeDecision === 'accepted' ? (
-                      <span className="text-emerald-700">Accepted by {activeHospital.name} — Route Confirmed!</span>
-                    ) : (
-                      <span>Tracking Route to {activeHospital.name}</span>
-                    )}
-                  </h3>
-                </div>
-                <span className="text-[11px] font-black text-emergency-red bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200">
-                  ETA ~{activeHospital.estimatedMinutes || 6}m ({activeHospital.distanceKm} km)
-                </span>
-              </div>
-
-              <MapView
-                userLocation={{ lat: 19.0720, lng: 72.8730, address: 'Ambulance Current Position' }}
-                activeRouteTarget={activeHospital}
-                height="440px"
-                originLabel="Ambulance Current Location"
-              />
-            </div>
-          ) : (
-            <div className="p-8 text-center bg-slate-50 rounded-3xl border border-slate-200 text-xs text-surface-muted">
-              Click any hospital above to start GPS tracking and query that hospital's ER desk.
-            </div>
+            ),
           )}
         </div>
+      )}
+
+      <div>
+        <label className="cc-label" htmlFor="notes">Notes for the hospital</label>
+        <textarea id="notes" rows={2} maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} className="cc-input" />
       </div>
+      <button type="submit" disabled={busy} className="cc-btn-sos w-full"><CheckCircle2 className="w-4 h-4" /> {busy ? 'Saving…' : 'Save assessment'}</button>
+    </form>
+  );
+};
+
+const PatientCard = ({ e, onSaved }) => {
+  const { authed, showToast } = useCrisisCare();
+  const p = e.patient || {};
+  const [name, setName] = useState('');
+  const [age, setAge] = useState(null);
+  const [sex, setSex] = useState(null);
+
+  const save = async () => {
+    try {
+      await authed('ambulance', '/ambulance/emergency/patient', { method: 'PUT', body: { fullName: name.trim() || null, ageGroup: age, sex } });
+      setName('');
+      showToast('Patient updated', 'Saved on the patient record.', 'success');
+      onSaved();
+    } catch (err) {
+      showToast('Not saved', err.message, 'warning');
+    }
+  };
+
+  return (
+    <div className="cc-card p-5 space-y-4">
+      <div className="flex items-center gap-3">
+        <Avatar name={p.fullName || 'Patient'} />
+        <div>
+          <h2 className="text-lg font-black">{p.fullName || 'Name not known'}</h2>
+          <p className="text-xs text-stone-500">{[AGES[p.ageGroup], p.sex?.toLowerCase(), p.bloodGroup && `Blood ${p.bloodGroup}`].filter(Boolean).join(' · ') || 'Age and sex not given'}</p>
+        </div>
+      </div>
+
+      {e.photo ? (
+        <figure>
+          <img src={e.photo} alt="Injury photo sent by the reporter" className="w-full max-h-72 object-cover rounded-xl border border-stone-200" />
+          <figcaption className="text-xs text-stone-500 mt-1 flex items-center gap-1"><Camera className="w-3.5 h-3.5" /> Sent by the reporter{e.report.bodyArea ? ` · ${e.report.bodyArea}` : ''}</figcaption>
+        </figure>
+      ) : null}
+
+      <dl className="grid grid-cols-2 gap-3">
+        <Field label="Reported">{findCategory(e.type).label}{e.patientCount > 1 ? ` · ${e.patientCount} patients` : ''}</Field>
+        <Field label="Reported by">{{ SELF: 'Patient', FAMILY: 'Family', BYSTANDER: 'Bystander' }[e.report.reporterRelation] || 'Not said'}</Field>
+        {e.report.symptoms.length > 0 && <Field label="Symptoms">{e.report.symptoms.join(', ')}{e.report.painLevel ? ` · pain ${e.report.painLevel}/5` : ''}</Field>}
+        {e.report.bodyArea && !e.photo && <Field label="Injury">{e.report.bodyArea}</Field>}
+        {p.knownConditions?.length > 0 && <Field label="Conditions">{p.knownConditions.join(', ')}</Field>}
+        {p.allergies?.length > 0 && <Field label="Allergies"><span className="text-red-700 font-black">{p.allergies.join(', ')}</span></Field>}
+      </dl>
+
+      <div className="flex flex-wrap gap-2">
+        {e.callerPhone && <a href={tel(e.callerPhone)} className="cc-btn-outline !py-2"><PhoneCall className="w-4 h-4" /> Caller {e.callerPhone}</a>}
+        {p.emergencyContactPhone && <a href={tel(p.emergencyContactPhone)} className="cc-btn-outline !py-2"><PhoneCall className="w-4 h-4" /> Family {p.emergencyContactPhone}</a>}
+        <a href={directionsUrl(e.lat, e.lng)} target="_blank" rel="noreferrer" className="cc-btn-primary !py-2"><Navigation className="w-4 h-4" /> Navigate to patient</a>
+      </div>
+
+      <details className="rounded-xl border border-stone-200 p-3">
+        <summary className="text-sm font-bold cursor-pointer">Correct patient details</summary>
+        <div className="mt-3 space-y-3">
+          <input value={name} onChange={(ev) => setName(ev.target.value)} placeholder="Full name" maxLength={150} className="cc-input" />
+          <div className="flex flex-wrap gap-2">{Object.entries(AGES).map(([id, l]) => <Pill key={id} on={age === id} onClick={() => setAge(age === id ? null : id)}>{l}</Pill>)}</div>
+          <div className="flex flex-wrap gap-2">{['FEMALE', 'MALE', 'OTHER'].map((s) => <Pill key={s} on={sex === s} onClick={() => setSex(sex === s ? null : s)}>{s.toLowerCase()}</Pill>)}</div>
+          <button type="button" onClick={save} className="cc-btn-dark !py-2">Save to patient record</button>
+        </div>
+      </details>
+    </div>
+  );
+};
+
+const HospitalChoice = ({ e, onChanged }) => {
+  const { authed, showToast } = useCrisisCare();
+  const { data: list, error, refresh } = useLive(() => authed('ambulance', '/ambulance/emergency/hospitals'), {
+    token: null, events: [], pollMs: 30000, key: `${e.code}-${e.assessment?.recordedAt}-${e.hospital?.response}`,
+  });
+  const locked = ['TRANSPORTING', 'ARRIVED'].includes(e.status);
+
+  const ask = async (h) => {
+    try {
+      await authed('ambulance', '/ambulance/emergency/select-hospital', { method: 'POST', body: { hospitalId: h.id } });
+      showToast('Hospital asked', `${h.name} sees the patient now. Call them if they don't answer in 3 minutes.`, 'info');
+      onChanged();
+      refresh();
+    } catch (err) {
+      showToast('Could not ask this hospital', err.message, 'warning');
+    }
+  };
+
+  return (
+    <div className="cc-card p-5 space-y-3">
+      <div>
+        <h2 className="text-lg font-black">Best hospital for this patient</h2>
+        <p className="text-xs text-stone-500">Ranked by what the patient needs ({e.needs?.join(', ')}), whether the emergency room is open, then travel time.</p>
+      </div>
+      <ErrorNote error={error} />
+      {!list && !error && <p className="text-sm text-stone-400">Ranking hospitals…</p>}
+      <ol className="space-y-2.5">
+        {list?.map((h) => {
+          const isCurrent = e.hospital?.id === h.id;
+          return (
+            <li key={h.id} className={`rounded-2xl border p-3.5 ${h.recommended ? 'border-emerald-400 bg-emerald-50/50' : h.response === 'declined' ? 'border-red-200 bg-red-50/40 opacity-70' : 'border-stone-200'}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {h.recommended && <span className="cc-chip bg-emerald-600 text-white"><Star className="w-3 h-3" /> Best fit</span>}
+                    {h.nearest && !h.recommended && <span className="cc-chip bg-stone-200 text-stone-700">Nearest</span>}
+                    <ErStatusBadge status={h.erStatus} />
+                    <OwnershipBadge ownership={h.ownership} />
+                  </div>
+                  <h3 className="font-black text-sm mt-1">{h.name}</h3>
+                  <p className="text-xs text-stone-500">{h.zone} · {h.distanceKm} km · ~{h.etaMinutes} min{h.extraMinutes > 0 ? ` (+${h.extraMinutes} vs nearest)` : ''} · ICU free {h.icuFree}</p>
+                </div>
+                <div className="flex flex-col gap-1.5 shrink-0 items-end">
+                  {h.response === 'declined' ? (
+                    <span className="cc-chip bg-red-600 text-white"><XCircle className="w-3 h-3" /> Declined</span>
+                  ) : h.response === 'accepted' ? (
+                    <span className="cc-chip bg-emerald-600 text-white"><CheckCircle2 className="w-3 h-3" /> Accepted</span>
+                  ) : isCurrent ? (
+                    <span className="cc-chip bg-amber-100 text-amber-900"><Radio className="w-3 h-3 animate-pulse" /> Waiting</span>
+                  ) : (
+                    <button onClick={() => ask(h)} disabled={locked || e.hospital?.response === 'accepted'} className="cc-btn-dark !py-1.5 !px-3 text-xs">Ask</button>
+                  )}
+                  {h.phone && <a href={tel(h.phone)} className="text-xs font-bold text-stone-600 hover:text-red-700 inline-flex items-center gap-1"><PhoneCall className="w-3 h-3" /> Call</a>}
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {h.fit.matched.map((m) => <span key={m} className="cc-chip bg-emerald-50 text-emerald-800 !font-semibold"><Check className="w-3 h-3" /> {m}</span>)}
+                {h.fit.missing.map((m) => <span key={m} className="cc-chip bg-red-50 text-red-700 !font-semibold"><XCircle className="w-3 h-3" /> {m}</span>)}
+              </div>
+              {h.fit.warnings.length > 0 && <p className="text-[11px] text-amber-800 mt-1.5"><AlertTriangle className="inline w-3 h-3" /> {h.fit.warnings.join(' · ')}</p>}
+              {h.declineReason && <p className="text-[11px] text-red-700 mt-1">Reason: {h.declineReason}</p>}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+};
+
+const STAGES = [
+  ['ARRIVE_SCENE', 'Arrived at patient', (e, a) => a.status === 'DISPATCHED'],
+  ['START_TRANSPORT', 'Patient on board, leave for hospital', (e, a) => a.status === 'AT_SCENE' && e.status === 'HOSPITAL_ACCEPTED'],
+  ['ARRIVE_HOSPITAL', 'Arrived at hospital', (e) => e.status === 'TRANSPORTING'],
+  ['HANDOVER', 'Patient handed over', (e) => e.status === 'ARRIVED'],
+];
+
+export const AmbulancePortal = () => {
+  const { sessions, authed, logout, showToast } = useCrisisCare();
+  const session = sessions.ambulance;
+  const [gpsOn, setGpsOn] = useState(true);
+  const { data, error, refresh } = useLive(() => authed('ambulance', '/ambulance/me'), {
+    token: session?.token, events: ['emergency:changed'], pollMs: 15000, enabled: Boolean(session),
+  });
+  const lastGps = useGpsShare(authed, Boolean(session) && gpsOn);
+
+  if (!session) return <Login />;
+
+  const a = data?.ambulance;
+  const e = data?.emergency;
+
+  const stage = async (step) => {
+    try {
+      await authed('ambulance', '/ambulance/emergency/stage', { method: 'POST', body: { step } });
+      refresh();
+    } catch (err) {
+      showToast('Not possible yet', err.message, 'warning');
+    }
+  };
+
+  const setAvailability = async (status) => {
+    try {
+      await authed('ambulance', '/ambulance/availability', { method: 'PUT', body: { status } });
+      refresh();
+    } catch (err) {
+      showToast('Not changed', err.message, 'warning');
+    }
+  };
+
+  const next = a && e ? STAGES.find(([, , ok]) => ok(e, a)) : null;
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-stone-900 text-white rounded-3xl p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Avatar name={session.user.fullName} className="w-14 h-14 text-lg" />
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black">{session.user.fullName}</h1>
+            <p className="text-sm text-stone-300">{session.user.crewRole?.toLowerCase() || 'paramedic'} · {a?.callsign || session.user.ambulance.callsign} ({a?.type}) · {a?.status?.replace('_', ' ').toLowerCase()}</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => setGpsOn(!gpsOn)} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold ${gpsOn ? 'bg-emerald-600' : 'bg-white/10'}`}>
+            <LocateFixed className="w-4 h-4" /> GPS {gpsOn ? `on${lastGps ? ` · sent ${lastGps.toLocaleTimeString()}` : ''}` : 'off'}
+          </button>
+          {!e && a && (
+            <button onClick={() => setAvailability(a.status === 'OFFLINE' ? 'AVAILABLE' : 'OFFLINE')} className="rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2 text-sm font-semibold">
+              {a.status === 'OFFLINE' ? 'Go on duty' : 'Go off duty'}
+            </button>
+          )}
+          <button onClick={() => logout('ambulance')} className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2 text-sm font-semibold"><LogOut className="w-4 h-4" /> Sign out</button>
+        </div>
+      </div>
+
+      <ErrorNote error={error} />
+
+      {!e ? (
+        <div className="cc-card p-10 text-center space-y-2">
+          <Truck className="w-10 h-10 mx-auto text-stone-300" />
+          <h2 className="text-xl font-black">{a?.status === 'OFFLINE' ? 'You are off duty' : 'Waiting for a call'}</h2>
+          <p className="text-sm text-stone-500">A new emergency appears here automatically, with an alert. Keep GPS on so dispatch can send you to the nearest call.</p>
+        </div>
+      ) : (
+        <>
+          <div className={`rounded-3xl p-5 sm:p-6 flex flex-wrap items-center gap-5 ${e.priority === 'URGENT' ? 'bg-red-700 text-white' : 'bg-amber-100'}`}>
+            <CategoryImage category={findCategory(e.type)} className="w-20 h-20 rounded-2xl bg-white shrink-0" />
+            <div className="flex-1 min-w-[220px]">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono text-xs font-bold opacity-80">{e.code}</span>
+                {e.priority === 'URGENT' && <span className="cc-chip bg-white text-red-700">URGENT</span>}
+                {e.assessment && <TriageBadge level={e.assessment.triage} />}
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black">{findCategory(e.type).label}</h2>
+              <p className="text-sm opacity-90 flex items-center gap-1"><MapPin className="w-4 h-4" /> {e.locationText || 'Pinned location'} · reported {timeAgo(e.createdAt)}</p>
+            </div>
+            {next && (
+              <button onClick={() => stage(next[0])} className="cc-btn bg-white text-stone-900 !py-4 text-base shadow-lg">
+                <CheckCircle2 className="w-5 h-5" /> {next[1]}
+              </button>
+            )}
+            {!next && e.status === 'AT_SCENE' && e.hospital?.response !== 'accepted' && (
+              <span className="text-sm font-bold">Ask a hospital below. Transport starts once one accepts.</span>
+            )}
+          </div>
+
+          <div className="grid lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-5 space-y-6">
+              <PatientCard e={e} onSaved={refresh} />
+              <Assessment emergency={e} onSaved={refresh} />
+            </div>
+            <div className="lg:col-span-7 space-y-6">
+              {e.hospital && (
+                <div className={`cc-card p-4 flex flex-wrap items-center gap-3 ${e.hospital.response === 'accepted' ? 'border-emerald-400' : e.hospital.response === 'declined' ? 'border-red-300' : 'border-amber-300'}`}>
+                  <Building2 className="w-6 h-6 text-amber-600" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black">{e.hospital.response === 'accepted' ? 'Accepted: ' : e.hospital.response === 'declined' ? 'Declined: ' : 'Waiting for: '}{e.hospital.name}</p>
+                    <p className="text-xs text-stone-500">{e.hospital.response === 'declined' ? e.hospital.declineReason : `${e.hospital.distanceKm} km from patient · ~${e.hospital.etaMinutes} min`}</p>
+                  </div>
+                  {e.hospital.phone && <a href={tel(e.hospital.phone)} className="cc-btn-outline !py-2"><PhoneCall className="w-4 h-4" /> Call ER</a>}
+                  <a href={directionsUrl(e.hospital.lat, e.hospital.lng)} target="_blank" rel="noreferrer" className="cc-btn-primary !py-2"><Navigation className="w-4 h-4" /> Navigate</a>
+                </div>
+              )}
+              <MapView
+                height="320px"
+                markers={[
+                  { id: 'p', kind: 'patient', lat: e.lat, lng: e.lng, popup: 'Patient' },
+                  a?.lat != null && { id: 'a', kind: 'ambulance', lat: a.lat, lng: a.lng, label: a.callsign },
+                  e.hospital && { id: 'h', kind: 'hospital', lat: e.hospital.lat, lng: e.hospital.lng, label: e.hospital.name },
+                ].filter(Boolean)}
+              />
+              <HospitalChoice e={e} onChanged={refresh} />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

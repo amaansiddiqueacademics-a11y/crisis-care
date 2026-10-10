@@ -1,0 +1,21 @@
+# PostgreSQL 16 + PostGIS 3.4 for local development.
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: crisis-care-db
+    environment:
+      POSTGRES_USER: crisis
+      POSTGRES_PASSWORD: crisis_dev_password
+      POSTGRES_DB: crisis_care
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - crisis_care_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crisis -d crisis_care"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  crisis_care_pgdata:

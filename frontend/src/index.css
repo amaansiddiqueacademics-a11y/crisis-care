@@ -91,3 +91,34 @@ input.dark-input::placeholder, textarea.dark-input::placeholder {
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+
+/* ---- Day theme building blocks (warm white, amber accent, red only for emergencies) ---- */
+@layer components {
+  .cc-card {
+    @apply bg-white rounded-2xl border border-stone-200 shadow-sm;
+  }
+  .cc-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .cc-btn-sos {
+    @apply cc-btn bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg shadow-red-900/20 hover:from-red-500 hover:to-orange-500;
+  }
+  .cc-btn-primary {
+    @apply cc-btn bg-amber-500 text-stone-950 hover:bg-amber-400;
+  }
+  .cc-btn-dark {
+    @apply cc-btn bg-stone-900 text-white hover:bg-stone-800;
+  }
+  .cc-btn-outline {
+    @apply cc-btn border border-stone-300 bg-white text-stone-800 hover:border-amber-500;
+  }
+  .cc-chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold;
+  }
+  .cc-input {
+    @apply w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200;
+  }
+  .cc-label {
+    @apply block text-xs font-bold uppercase tracking-wide text-stone-500 mb-1.5;
+  }
+}

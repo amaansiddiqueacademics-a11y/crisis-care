@@ -1,16 +1,14 @@
-import dotenv from "dotenv";
 import pg from "pg";
 
-dotenv.config();
+import { config } from "./env.js";
 
 const { Pool } = pg;
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
+// Return BIGINT/COUNT values as numbers (ids and counts here are far below 2^53).
+pg.types.setTypeParser(20, (value) => Number(value));
 
-pool.on("connect", () => {
-  console.log("PostgreSQL client connected");
+const pool = new Pool({
+  connectionString: config.databaseUrl
 });
 
 pool.on("error", (error) => {
@@ -18,20 +16,31 @@ pool.on("error", (error) => {
 });
 
 export const testDatabaseConnection = async () => {
+  const result = await pool.query(
+    "SELECT NOW() AS now, PostGIS_Version() AS postgis"
+  );
+
+  console.log(
+    `PostgreSQL connected (PostGIS ${result.rows[0].postgis})`
+  );
+};
+
+/**
+ * Run `work(client)` inside a transaction; commits on success, rolls back on error.
+ */
+export const withTransaction = async (work) => {
+  const client = await pool.connect();
+
   try {
-    const result = await pool.query("SELECT NOW()");
-
-    console.log(
-      "PostgreSQL connected:",
-      result.rows[0].now
-    );
+    await client.query("BEGIN");
+    const result = await work(client);
+    await client.query("COMMIT");
+    return result;
   } catch (error) {
-    console.error(
-      "PostgreSQL connection failed:",
-      error.message
-    );
-
-    process.exit(1);
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
   }
 };
 
