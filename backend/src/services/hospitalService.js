@@ -107,7 +107,6 @@ export const recommendHospitals = async ({ type, lat, lng }) => {
       erStatusNote: h.er_status_note,
       distanceKm: metersToKm(h.dist),
       etaMinutes: etaMinutes(h.dist),
-      icuFree: h.available.ICU_BED ?? 0,
       inventoryConfirmedAt: h.confirmed_at,
       fit: assessFit(requirements, {
         services: h.services,

@@ -137,7 +137,7 @@ const Recommendation = () => {
                 </div>
                 <div className="flex flex-wrap gap-1 mt-1"><ErStatusBadge status={h.erStatus} /><OwnershipBadge ownership={h.ownership} /></div>
                 {h.fit.missing.length === 0 ? (
-                  <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-bold text-emerald-700"><Check className="w-3.5 h-3.5" /> Has what is needed · ICU free {h.icuFree}</span>
+                  <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-bold text-emerald-700"><Check className="w-3.5 h-3.5" /> Has what is needed</span>
                 ) : (
                   <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-bold text-red-700"><X className="w-3.5 h-3.5" /> Missing: {h.fit.missing.join(', ')}</span>
                 )}
