@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: crisis_dev_password
       POSTGRES_DB: crisis_care
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5433:5432"
     volumes:
       - crisis_care_pgdata:/var/lib/postgresql/data
     healthcheck:
