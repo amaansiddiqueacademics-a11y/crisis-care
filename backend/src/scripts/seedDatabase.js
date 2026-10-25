@@ -942,7 +942,26 @@ const AMBULANCE_FIXTURES = [
   { callsign: "NVM-BLS-10", station: "mgm_kamothe", crew: "Sachin Patil" },
   { callsign: "PAL-BLS-11", station: "rh_palghar", crew: "Kiran Vartha" },
   { callsign: "PAL-BLS-12", station: "sdh_dahanu", crew: "Mahesh Dhodi" },
-  { callsign: "VSI-ALS-13", station: "dmpetit_vasai", crew: "Joseph D'Souza" }
+  { callsign: "VSI-ALS-13", station: "dmpetit_vasai", crew: "Joseph D'Souza" },
+
+  // Extra DEMO units (14-28) for dispatch demonstrations. Names are invented, positions are real
+  // hospital coordinates used as base stations; none of them is a real emergency service.
+  // `status` is the initial availability: OFFLINE and MAINTENANCE units must never be dispatched.
+  { callsign: "MUM-ALS-14", station: "stgeorge_mumbai", crew: "Meera Iyer" },
+  { callsign: "MUM-BLS-15", station: "hnreliance_mumbai", crew: "Arjun Naik" },
+  { callsign: "WST-ALS-16", station: "vndesai_santacruz", crew: "Pooja Bhatt" },
+  { callsign: "WST-BLS-17", station: "hbttrauma_jogeshwari", crew: "Salman Ansari" },
+  { callsign: "WST-BLS-18", station: "bhaktivedanta_mira", crew: "Dinesh Yadav" },
+  { callsign: "CEN-BLS-19", station: "kurlabhabha_mumbai", crew: "Rekha Gaikwad" },
+  { callsign: "CEN-ALS-20", station: "mtagarwal_mulund", crew: "Tushar Kadam" },
+  { callsign: "THN-BLS-21", station: "highland_thane", crew: "Anita Shinde" },
+  { callsign: "THN-ALS-22", station: "fortis_kalyan", crew: "Faisal Qureshi" },
+  { callsign: "THN-BLS-23", station: "central_ulhasnagar", crew: "Lata Chavan", status: "OFFLINE" },
+  { callsign: "NVM-ALS-24", station: "nbc_airoli", crew: "Rahul Mhatre" },
+  { callsign: "NVM-BLS-25", station: "terna_nerul", crew: "Sneha Jadhav" },
+  { callsign: "NVM-BLS-26", station: "sdh_panvel", crew: "Omkar Salvi", status: "MAINTENANCE" },
+  { callsign: "VSI-ALS-27", station: "cardinalgracias_vasai", crew: "Glen Fernandes" },
+  { callsign: "PAL-BLS-28", station: "rh_kasa", crew: "Bhavesh Raut" }
 ];
 
 async function seedAmbulances(client) {
@@ -977,8 +996,8 @@ async function seedAmbulances(client) {
     const ambulance = await client.query(
       `
       INSERT INTO ambulances
-        (callsign, registration_number, ambulance_type, latitude, longitude, location, zone)
-      VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($5, $4), 4326)::geography, $6)
+        (callsign, registration_number, ambulance_type, latitude, longitude, location, zone, status)
+      VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($5, $4), 4326)::geography, $6, $7)
       ON CONFLICT (callsign) DO UPDATE SET zone = EXCLUDED.zone
       RETURNING ambulance_id
       `,
@@ -988,7 +1007,8 @@ async function seedAmbulances(client) {
         unit.callsign.includes("ALS") ? "ALS" : "BLS",
         latitude,
         longitude,
-        zone
+        zone,
+        unit.status || "AVAILABLE"
       ]
     );
 

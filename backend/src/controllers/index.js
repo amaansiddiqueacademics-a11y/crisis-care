@@ -16,6 +16,7 @@ import {
   updatePatientByCrew,
   getAmbulanceOverview,
   getEmergencyByCode,
+  listNearbyUnits,
   listNearbyHospitals,
   saveAssessment,
   selectHospital,
@@ -71,6 +72,8 @@ export const trackEmergency = async (req, res) => {
 
   ok(res, emergency);
 };
+
+export const nearbyUnits = async (req, res) => ok(res, await listNearbyUnits(req.params.code));
 
 export const cancelReportedEmergency = async (req, res) =>
   ok(res, await cancelEmergency(req.params.code), "Emergency cancelled");
