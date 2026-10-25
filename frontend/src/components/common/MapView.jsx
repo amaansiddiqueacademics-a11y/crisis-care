@@ -28,7 +28,7 @@ const ICONS = {
  * accepts, a unit is assigned). A live position update only re-frames if a marker has left the
  * view, and never after the user has panned or zoomed: then a "Re-centre" button appears instead.
  */
-function FitView({ points, setKey, recenterSignal, onUserMoved }) {
+function FitView({ points, setKey, recenterSignal, onUserMoved, resetKey }) {
   const map = useMap();
   const userMoved = useRef(false);
   const programmatic = useRef(false);
@@ -59,6 +59,16 @@ function FitView({ points, setKey, recenterSignal, onUserMoved }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, JSON.stringify(points)]);
 
+  // The stage of the call changed (e.g. arrived at the hospital): show the new place even if the user had panned away.
+  const firstReset = useRef(true);
+  useEffect(() => {
+    if (firstReset.current) { firstReset.current = false; return; }
+    userMoved.current = false;
+    onUserMoved(false);
+    frame(points);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey]);
+
   // "Re-centre" pressed.
   useEffect(() => {
     if (!recenterSignal) return;
@@ -75,7 +85,7 @@ function FitView({ points, setKey, recenterSignal, onUserMoved }) {
  * markers: [{ id, lat, lng, kind: 'patient'|'ambulance'|'hospital', label, popup, color }]
  * route:   optional [[lat, lng], ...] drawn as a dashed straight line (not road routing)
  */
-export const MapView = ({ markers = [], route = null, height = '360px', fitTo = null }) => {
+export const MapView = ({ markers = [], route = null, height = '360px', fitTo = null, resetKey = '' }) => {
   const valid = markers.filter((m) => m.lat != null && m.lng != null);
   const points = useMemo(
     () => (fitTo || valid).filter((m) => m.lat != null).map((m) => [m.lat, m.lng]),
@@ -90,7 +100,7 @@ export const MapView = ({ markers = [], route = null, height = '360px', fitTo = 
   return (
     <div className="relative w-full rounded-2xl overflow-hidden border border-stone-200 bg-stone-100" style={{ height }}>
       <MapContainer center={center} zoom={12} scrollWheelZoom={false} className="w-full h-full">
-        <FitView points={points.length ? points : [center]} setKey={setKey} recenterSignal={recenter} onUserMoved={setMoved} />
+        <FitView points={points.length ? points : [center]} setKey={setKey} recenterSignal={recenter} onUserMoved={setMoved} resetKey={resetKey} />
         <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {valid.map((m) => (
           <Marker key={m.id || `${m.kind}-${m.lat}-${m.lng}`} position={[m.lat, m.lng]} icon={ICONS[m.kind || 'patient'](m)}>

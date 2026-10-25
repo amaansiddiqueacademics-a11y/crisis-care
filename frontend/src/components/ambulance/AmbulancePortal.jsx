@@ -9,7 +9,7 @@ import { findCategory } from '../../data/emergencyCategories';
 import { directionsUrl, tel } from '../../data/helplines';
 import { CategoryImage } from '../common/FirstAidSteps';
 import { MapView } from '../common/MapView';
-import { etaShort, gpsText, routeLine, trackingMarkers } from '../common/tracking';
+import { atHospital, etaShort, gpsText, mapStage, routeLine, trackingMarkers } from '../common/tracking';
 import { Avatar, ErStatusBadge, ErrorNote, Field, OwnershipBadge, Pill, TriageBadge, timeAgo } from '../common/ui';
 
 // Extra questions that matter for the hospital choice, per reported category.
@@ -197,12 +197,10 @@ const Assessment = ({ emergency, onSaved }) => {
 
   return (
     <form onSubmit={save} className="cc-card p-5 space-y-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-black">On-scene assessment</h2>
-          <p className="text-xs text-stone-500">Sent to the hospital you ask. Triage colour is computed from it.</p>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <h2 className="text-lg font-black leading-tight">On-scene assessment</h2>
         {emergency.assessment && <TriageBadge level={emergency.assessment.triage} />}
+        <p className="basis-full text-xs text-stone-500">Sent to the hospital you ask. Triage colour is computed from it.</p>
       </div>
       <Choice label="Conscious?" value={consciousness} onChange={setConsciousness} options={[['conscious', 'Alert'], ['semi-conscious', 'Drowsy'], ['unconscious', 'Unconscious']]} />
       <Choice label="Breathing" value={breathing} onChange={setBreathing} options={[['normal', 'Normal'], ['labored', 'Laboured'], ['not-breathing', 'Not breathing']]} />
@@ -313,15 +311,16 @@ const NavigationCard = ({ e }) => {
   const nav = e.navigation;
   const dest = nav?.destination;
   const a = e.ambulance;
-  const where = !dest ? null : dest.kind === 'PATIENT' ? `Patient · ${e.locationText || 'pinned location'}` : dest.name;
+  const here = atHospital(e);
+  const where = here ? `At ${e.hospital?.name}` : !dest ? null : dest.kind === 'PATIENT' ? `Patient · ${e.locationText || 'pinned location'}` : dest.name;
   return (
     <div className={`cc-card p-4 flex flex-wrap items-center gap-4 ${dest ? 'border-amber-300' : ''}`}>
       <Navigation className="w-7 h-7 text-amber-600 shrink-0" />
       <div className="flex-1 min-w-[200px]">
-        <p className="cc-label !mb-0">{dest ? 'Current destination' : 'Navigation'}</p>
+        <p className="cc-label !mb-0">{here ? 'Current location' : dest ? 'Current destination' : 'Navigation'}</p>
         <p className="text-lg font-black leading-tight">{where || 'No destination right now'}</p>
         <p className="text-xs text-stone-500 mt-0.5">
-          {dest ? `${etaShort(a)} · ${gpsText(a)}` : nav?.note}
+          {here ? [e.hospital?.address, 'Next: hand the patient over.'].filter(Boolean).join(' · ') : dest ? `${etaShort(a)} · ${gpsText(a)}` : nav?.note}
         </p>
       </div>
       {dest && (
@@ -414,7 +413,7 @@ export const AmbulancePortal = () => {
   const session = sessions.ambulance;
   // Off until the crew asks for it: sharing moves the unit to wherever THIS device is.
   const [gpsOn, setGpsOn] = useState(false);
-  const { data, error, refresh } = useLive(() => authed('ambulance', '/ambulance/me'), {
+  const { data, setData, error, refresh } = useLive(() => authed('ambulance', '/ambulance/me'), {
     token: session?.token, events: ['emergency:changed'], pollMs: 15000, enabled: Boolean(session),
   });
   const gps = useGpsShare(authed, Boolean(session) && gpsOn);
@@ -438,8 +437,7 @@ export const AmbulancePortal = () => {
 
   const stage = async (step) => {
     try {
-      await authed('ambulance', '/ambulance/emergency/stage', { method: 'POST', body: { step } });
-      refresh();
+      setData(await authed('ambulance', '/ambulance/emergency/stage', { method: 'POST', body: { step } }));
     } catch (err) {
       showToast('Not possible yet', err.message, 'warning');
     }
@@ -504,7 +502,7 @@ export const AmbulancePortal = () => {
                 {e.assessment && <TriageBadge level={e.assessment.triage} />}
               </div>
               <h2 className="text-2xl sm:text-3xl font-black">{findCategory(e.type).label}</h2>
-              <p className="text-sm opacity-90 flex items-center gap-1"><MapPin className="w-4 h-4" /> {e.locationText || 'Pinned location'} · reported {timeAgo(e.createdAt)}</p>
+              <p className="text-sm opacity-90 flex items-center gap-1"><MapPin className="w-4 h-4" /> {atHospital(e) ? `At ${e.hospital?.name} · pickup was ${e.locationText || 'the pinned location'}` : `${e.locationText || 'Pinned location'} · reported ${timeAgo(e.createdAt)}`}</p>
             </div>
             {next && (
               <button onClick={() => stage(next[0])} className="cc-btn bg-white text-stone-900 !py-4 text-base shadow-lg">
@@ -534,8 +532,8 @@ export const AmbulancePortal = () => {
                   {e.hospital.phone && <a href={tel(e.hospital.phone)} className="cc-btn-outline !py-2"><PhoneCall className="w-4 h-4" /> Call ER</a>}
                 </div>
               )}
-              <MapView height="320px" markers={trackingMarkers(e)} route={routeLine(e)} />
-              <p className="text-xs text-stone-500 -mt-4 px-1">Dashed line: straight line to the current destination, not the road route.</p>
+              <MapView height="320px" markers={trackingMarkers(e)} route={routeLine(e)} resetKey={mapStage(e)} />
+              <p className="text-xs text-stone-500 -mt-4 px-1">{atHospital(e) ? `Patient delivered to ${e.hospital?.name}. The original pickup location stays in the call details.` : 'Dashed line: straight line to the current destination, not the road route.'}</p>
               <HospitalChoice e={e} onChanged={refresh} />
             </div>
           </div>

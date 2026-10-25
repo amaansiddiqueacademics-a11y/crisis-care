@@ -10,7 +10,7 @@ import { findCategory } from '../../data/emergencyCategories';
 import { tel } from '../../data/helplines';
 import { MapView } from '../common/MapView';
 import { ConfirmDialog, ErrorNote, Field, TriageBadge, minutesAgo, timeAgo } from '../common/ui';
-import { etaShort, gpsText, routeLine, trackingMarkers } from '../common/tracking';
+import { etaShort, gpsText, mapStage, routeLine, trackingMarkers } from '../common/tracking';
 
 const km = (a, b) => {
   const rad = (d) => (d * Math.PI) / 180;
@@ -87,7 +87,7 @@ const IncidentPanel = ({ e, units, onAssign, onCancel }) => {
         </dl>
         <div className="space-y-3">
           {e.photo && <img src={e.photo} alt="Reporter photo" className="w-full max-h-48 object-cover rounded-xl border border-stone-200" />}
-          <MapView height="220px" markers={trackingMarkers(e)} route={routeLine(e)} />
+          <MapView height="220px" markers={trackingMarkers(e)} route={routeLine(e)} resetKey={mapStage(e)} />
         </div>
       </div>
 

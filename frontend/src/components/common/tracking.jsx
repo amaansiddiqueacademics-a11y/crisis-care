@@ -31,9 +31,18 @@ export const ambulanceMarker = (amb, extra = {}) => {
   };
 };
 
+/** The patient has been delivered: the hospital is now the active location, not the pickup point. */
+export const atHospital = (e) => Boolean(e.hospital) && (e.status === 'ARRIVED' || e.navigation?.phase === 'AT_HOSPITAL');
+
+/** Changes when the map should re-frame itself even if the user had panned it (e.g. arrival at the hospital). */
+export const mapStage = (e) => (atHospital(e) ? 'HOSPITAL' : e.navigation?.destination?.kind || 'NONE');
+
 /** Patient, ambulance and (if one is involved and has not declined) hospital markers for one emergency. */
 export const trackingMarkers = (e) => {
   const h = e.hospital;
+  if (atHospital(e)) {
+    return [{ id: 'h', kind: 'hospital', lat: h.lat, lng: h.lng, label: `Delivered: ${h.name}`, color: '#10B981', popup: h.address || h.name }];
+  }
   const hospitalShown = h && h.response !== 'declined';
   return [
     { id: 'p', kind: 'patient', lat: e.lat, lng: e.lng, popup: 'Patient' },
