@@ -11,7 +11,7 @@ import { directionsUrl, tel } from '../../data/helplines';
 import { CategoryImage, FirstAidSteps } from '../common/FirstAidSteps';
 import { MapView } from '../common/MapView';
 import { ConfirmDialog, ErrorNote, HelplineStrip, Pill } from '../common/ui';
-import { EtaBadge, gpsText, routeLine, trackingMarkers } from '../common/tracking';
+import { atHospital, EtaBadge, gpsText, mapStage, routeLine, trackingMarkers } from '../common/tracking';
 
 /** Other ambulances near the patient, shown small and grey next to the assigned one. */
 const unitMarkers = (units) =>
@@ -350,12 +350,12 @@ const Tracker = ({ code }) => {
 
   const steps = [
     { icon: CheckCircle2, title: 'Help requested', done: true, text: `${findCategory(e.type).label} · code ${e.code}` },
-    { icon: Truck, title: e.ambulance ? `Ambulance ${e.ambulance.callsign}` : 'Waiting for a free ambulance', done: Boolean(e.ambulance), warn: !e.ambulance, text: e.ambulance ? `${e.ambulance.paramedicName || 'Crew'} · ${e.ambulance.distanceKm != null ? `${e.ambulance.distanceKm} km away in a straight line · ` : ''}${gpsText(e.ambulance)}` : 'You are in the queue. Call 108 as well.' },
+    { icon: Truck, title: e.ambulance ? `Ambulance ${e.ambulance.callsign}` : 'Waiting for a free ambulance', done: Boolean(e.ambulance), warn: !e.ambulance, text: e.ambulance ? atHospital(e) ? `${e.ambulance.paramedicName || 'Crew'} · patient delivered to the hospital` : `${e.ambulance.paramedicName || 'Crew'} · ${e.ambulance.distanceKm != null ? `${e.ambulance.distanceKm} km away in a straight line · ` : ''}${gpsText(e.ambulance)}` : 'You are in the queue. Call 108 as well.' },
     { icon: Stethoscope, title: 'Patient checked', done: Boolean(e.assessment), text: e.assessment ? 'Condition sent to the hospital' : 'The crew examines the patient on arrival' },
     { icon: Building2, title: accepted ? `${h.name} is ready` : h?.response === 'declined' ? 'Choosing another hospital' : h ? `Asking ${h.name}` : 'Hospital confirmation', done: accepted, warn: e.declinedHospitals.length > 0 && !accepted, text: accepted ? 'Bed reserved, team alerted' : e.declinedHospitals.length ? `${e.declinedHospitals.length} hospital(s) could not take the patient` : 'The crew asks the hospital that fits the patient' },
   ];
 
-  const markers = e.isOpen ? [...trackingMarkers(e), ...unitMarkers(units)] : [{ id: 'p', kind: 'patient', lat: e.lat, lng: e.lng, popup: 'Patient' }];
+  const markers = e.isOpen ? [...trackingMarkers(e), ...(atHospital(e) ? [] : unitMarkers(units))] : [{ id: 'p', kind: 'patient', lat: e.lat, lng: e.lng, popup: 'Patient' }];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -368,7 +368,7 @@ const Tracker = ({ code }) => {
           {e.isOpen && <EtaBadge amb={e.ambulance} />}
         </div>
         <div className="mt-5 pt-4 border-t border-white/25 flex flex-wrap items-center gap-2 text-sm">
-          <span className="flex items-center gap-2 mr-auto"><MapPin className="w-4 h-4" /> {e.locationText || 'Pinned location'}</span>
+          <span className="flex items-center gap-2 mr-auto"><MapPin className="w-4 h-4" /> {atHospital(e) ? `At ${h.name}` : e.locationText || 'Pinned location'}</span>
           <a href={tel('108')} className="inline-flex items-center gap-2 rounded-xl bg-white text-stone-900 px-4 py-2 font-bold"><PhoneCall className="w-4 h-4" /> 108</a>
           {h?.phone && <a href={tel(h.phone)} className="inline-flex items-center gap-2 rounded-xl bg-white text-stone-900 px-4 py-2 font-bold"><Building2 className="w-4 h-4" /> Call hospital</a>}
         </div>
@@ -398,7 +398,7 @@ const Tracker = ({ code }) => {
         </div>
       </div>
 
-      {e.isOpen && units?.length > 0 && (
+      {e.isOpen && !atHospital(e) && units?.length > 0 && (
         <div className="cc-card p-5">
           <h2 className="text-lg font-black mb-1 flex items-center gap-2"><Truck className="w-5 h-5 text-amber-600" /> Ambulances near you</h2>
           <p className="text-xs text-stone-500 mb-3">Straight-line estimates from each unit's last known or base-station position. They are not road times and have no traffic data.</p>
@@ -415,14 +415,14 @@ const Tracker = ({ code }) => {
         </div>
       )}
 
-      {e.isOpen && transportStarted && (
+      {e.isOpen && transportStarted && !atHospital(e) && (
         <div className="cc-card border-amber-300 bg-amber-50 p-4 text-sm text-amber-900" role="note">
           <strong>This request can no longer be cancelled here</strong> because the patient is already on the way to the hospital. If something is wrong, tell the crew or call <a href={tel('108')} className="font-black underline">108</a>.
         </div>
       )}
 
-      <MapView markers={markers} route={e.isOpen ? routeLine(e) : null} height="300px" />
-      {e.isOpen && e.ambulance && (
+      <MapView markers={markers} route={e.isOpen ? routeLine(e) : null} height="300px" resetKey={mapStage(e)} />
+      {e.isOpen && e.ambulance && !atHospital(e) && (
         <p className="text-xs text-stone-500 -mt-3 px-1">
           {e.ambulance.callsign}: {gpsText(e.ambulance)}. The dashed line is a demo path: a straight line to {e.navigation?.destination?.kind === 'HOSPITAL' ? 'the hospital' : 'you'}, not the road route.
         </p>
@@ -436,7 +436,7 @@ const Tracker = ({ code }) => {
         </ConfirmDialog>
       )}
 
-      {e.isOpen && <FirstAidSteps categoryId={e.type} />}
+      {e.isOpen && !transportStarted && <FirstAidSteps categoryId={e.type} />}
       <div className="cc-card p-5 text-sm text-stone-700 space-y-1">
         <p className="font-black text-base flex items-center gap-2"><UserRound className="w-5 h-5 text-amber-600" /> Please stay on this page</p>
         <p>It updates by itself until the patient reaches the hospital.</p>

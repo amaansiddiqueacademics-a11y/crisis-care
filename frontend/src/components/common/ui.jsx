@@ -30,7 +30,13 @@ export const TRIAGE = {
   GREEN: ['Green: stable', 'bg-emerald-600 text-white'],
 };
 
-export const TriageBadge = ({ level }) => (level ? <span className={`cc-chip ${TRIAGE[level][1]}`}>{TRIAGE[level][0]}</span> : null);
+/** One-line pill: fixed height and padding so it lines up next to headings, never wraps or shrinks. */
+export const TriageBadge = ({ level }) =>
+  level ? (
+    <span className={`inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold leading-none ${TRIAGE[level][1]}`}>
+      {TRIAGE[level][0]}
+    </span>
+  ) : null;
 
 export const OwnershipBadge = ({ ownership }) =>
   ownership === 'PUBLIC' ? (
