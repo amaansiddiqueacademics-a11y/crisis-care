@@ -10,7 +10,12 @@ import { EMERGENCY_CATEGORIES, findCategory } from '../../data/emergencyCategori
 import { directionsUrl, tel } from '../../data/helplines';
 import { CategoryImage, FirstAidSteps } from '../common/FirstAidSteps';
 import { MapView } from '../common/MapView';
-import { ErrorNote, HelplineStrip, Pill } from '../common/ui';
+import { ConfirmDialog, ErrorNote, HelplineStrip, Pill } from '../common/ui';
+import { EtaBadge, gpsText, routeLine, trackingMarkers } from '../common/tracking';
+
+/** Other ambulances near the patient, shown small and grey next to the assigned one. */
+const unitMarkers = (units) =>
+  (units || []).filter((u) => !u.assigned).map((u) => ({ id: `u${u.id}`, kind: 'ambulance', lat: u.lat, lng: u.lng, label: u.callsign, color: '#A8A29E', popup: `${u.callsign} (${u.type}), free, base station` }));
 
 // Tap-only answers: nothing here needs typing during an emergency.
 const AREAS = [
@@ -306,7 +311,9 @@ const BANNERS = {
 const Tracker = ({ code }) => {
   const { setTrackingCode, forgetTracking, showToast } = useCrisisCare();
   const { data: e, error, refresh, updatedAt } = useLive(() => api(`/emergencies/${code}`), { events: ['emergency:changed'], track: code, pollMs: 15000 });
+  const units = useLive(() => api(`/emergencies/${code}/nearby-ambulances`), { events: ['emergency:changed'], track: code, pollMs: 15000 }).data;
   const [cancelling, setCancelling] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
   const finished = Boolean(e) && !e.isOpen;
   useEffect(() => { if (finished) forgetTracking(); }, [finished, forgetTracking]);
 
@@ -323,33 +330,32 @@ const Tracker = ({ code }) => {
   const [tone, title, text] = BANNERS[e.status] || BANNERS.AMBULANCE_ASSIGNED;
   const h = e.hospital;
   const accepted = h?.response === 'accepted';
-  const eta = ['TRANSPORTING', 'HOSPITAL_ACCEPTED'].includes(e.status) && accepted ? h.etaMinutes : e.ambulance?.etaMinutes;
+  const transportStarted = ['TRANSPORTING', 'ARRIVED'].includes(e.status);
 
+  // The page only shows "cancelled" after the server confirms; on failure it keeps showing the live request.
   const cancel = async () => {
-    if (!window.confirm('Cancel the ambulance? Only do this if help is no longer needed.')) return;
     setCancelling(true);
     try {
       await api(`/emergencies/${code}/cancel`, { method: 'POST' });
-      refresh();
+      setConfirmingCancel(false);
+      showToast('Request cancelled', 'The ambulance has been told to stop. Call 108 if help is needed again.', 'info');
     } catch (err) {
+      setConfirmingCancel(false);
       showToast('Could not cancel', err.message, 'warning');
     } finally {
       setCancelling(false);
+      refresh();
     }
   };
 
   const steps = [
     { icon: CheckCircle2, title: 'Help requested', done: true, text: `${findCategory(e.type).label} · code ${e.code}` },
-    { icon: Truck, title: e.ambulance ? `Ambulance ${e.ambulance.callsign}` : 'Waiting for a free ambulance', done: Boolean(e.ambulance), warn: !e.ambulance, text: e.ambulance ? `${e.ambulance.paramedicName || 'Crew'} · ${e.ambulance.distanceKm ?? '?'} km away` : 'You are in the queue. Call 108 as well.' },
+    { icon: Truck, title: e.ambulance ? `Ambulance ${e.ambulance.callsign}` : 'Waiting for a free ambulance', done: Boolean(e.ambulance), warn: !e.ambulance, text: e.ambulance ? `${e.ambulance.paramedicName || 'Crew'} · ${e.ambulance.distanceKm != null ? `${e.ambulance.distanceKm} km away in a straight line · ` : ''}${gpsText(e.ambulance)}` : 'You are in the queue. Call 108 as well.' },
     { icon: Stethoscope, title: 'Patient checked', done: Boolean(e.assessment), text: e.assessment ? 'Condition sent to the hospital' : 'The crew examines the patient on arrival' },
     { icon: Building2, title: accepted ? `${h.name} is ready` : h?.response === 'declined' ? 'Choosing another hospital' : h ? `Asking ${h.name}` : 'Hospital confirmation', done: accepted, warn: e.declinedHospitals.length > 0 && !accepted, text: accepted ? 'Bed reserved, team alerted' : e.declinedHospitals.length ? `${e.declinedHospitals.length} hospital(s) could not take the patient` : 'The crew asks the hospital that fits the patient' },
   ];
 
-  const markers = [
-    { id: 'p', kind: 'patient', lat: e.lat, lng: e.lng, popup: 'Patient' },
-    e.ambulance?.lat != null && { id: 'a', kind: 'ambulance', lat: e.ambulance.lat, lng: e.ambulance.lng, label: e.ambulance.callsign },
-    h && { id: 'h', kind: 'hospital', lat: h.lat, lng: h.lng, label: h.name, color: accepted ? '#10B981' : '#F59E0B' },
-  ].filter(Boolean);
+  const markers = e.isOpen ? [...trackingMarkers(e), ...unitMarkers(units)] : [{ id: 'p', kind: 'patient', lat: e.lat, lng: e.lng, popup: 'Patient' }];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -359,12 +365,7 @@ const Tracker = ({ code }) => {
             <h1 className="text-3xl sm:text-4xl font-black">{title}</h1>
             <p className="mt-2 text-white/90">{text}</p>
           </div>
-          {e.isOpen && eta != null && (
-            <div className="text-center bg-black/20 rounded-2xl px-6 py-3 shrink-0">
-              <div className="text-5xl font-black tabular-nums leading-none">~{eta}</div>
-              <div className="text-xs font-bold mt-1">min (straight-line estimate)</div>
-            </div>
-          )}
+          {e.isOpen && <EtaBadge amb={e.ambulance} />}
         </div>
         <div className="mt-5 pt-4 border-t border-white/25 flex flex-wrap items-center gap-2 text-sm">
           <span className="flex items-center gap-2 mr-auto"><MapPin className="w-4 h-4" /> {e.locationText || 'Pinned location'}</span>
@@ -391,14 +392,49 @@ const Tracker = ({ code }) => {
         <div className="mt-5 pt-4 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="text-stone-500">Updates live{updatedAt ? ` · checked ${updatedAt.toLocaleTimeString()}` : ''}</span>
           <span className="flex gap-3">
-            {e.isOpen && !['TRANSPORTING', 'ARRIVED'].includes(e.status) && <button onClick={cancel} disabled={cancelling} className="text-red-700 font-bold hover:underline">Cancel request</button>}
+            {e.isOpen && !transportStarted && <button onClick={() => setConfirmingCancel(true)} disabled={cancelling} className="text-red-700 font-bold hover:underline">Cancel request</button>}
             <button onClick={() => { setTrackingCode(null); window.location.hash = '#/report'; }} className="font-bold text-stone-700 hover:underline inline-flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> New request</button>
           </span>
         </div>
       </div>
 
-      <MapView markers={markers} height="300px" />
-      {h && <a href={directionsUrl(h.lat, h.lng)} target="_blank" rel="noreferrer" className="cc-btn-outline w-full"><MapPin className="w-4 h-4" /> Directions to {h.name} (for family)</a>}
+      {e.isOpen && units?.length > 0 && (
+        <div className="cc-card p-5">
+          <h2 className="text-lg font-black mb-1 flex items-center gap-2"><Truck className="w-5 h-5 text-amber-600" /> Ambulances near you</h2>
+          <p className="text-xs text-stone-500 mb-3">Straight-line estimates from each unit's last known or base-station position. They are not road times and have no traffic data.</p>
+          <ul className="divide-y divide-stone-100">
+            {units.map((u) => (
+              <li key={u.id} className="py-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="font-bold">{u.callsign}</span>
+                <span className="text-xs text-stone-400">{u.type}</span>
+                {u.assigned ? <span className="cc-chip bg-red-600 text-white">Coming to you</span> : u.id === units.find((x) => !x.assigned)?.id && <span className="cc-chip bg-emerald-100 text-emerald-800">Nearest free</span>}
+                <span className="ml-auto text-sm tabular-nums">{u.distanceKm} km · ~{u.etaMinutes} min <span className="text-xs text-stone-400">est.</span></span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {e.isOpen && transportStarted && (
+        <div className="cc-card border-amber-300 bg-amber-50 p-4 text-sm text-amber-900" role="note">
+          <strong>This request can no longer be cancelled here</strong> because the patient is already on the way to the hospital. If something is wrong, tell the crew or call <a href={tel('108')} className="font-black underline">108</a>.
+        </div>
+      )}
+
+      <MapView markers={markers} route={e.isOpen ? routeLine(e) : null} height="300px" />
+      {e.isOpen && e.ambulance && (
+        <p className="text-xs text-stone-500 -mt-3 px-1">
+          {e.ambulance.callsign}: {gpsText(e.ambulance)}. The dashed line is a demo path: a straight line to {e.navigation?.destination?.kind === 'HOSPITAL' ? 'the hospital' : 'you'}, not the road route.
+        </p>
+      )}
+      {h && h.response !== 'declined' && <a href={directionsUrl(h.lat, h.lng)} target="_blank" rel="noreferrer" className="cc-btn-outline w-full"><MapPin className="w-4 h-4" /> Directions to {h.name} (for family)</a>}
+
+      {confirmingCancel && (
+        <ConfirmDialog title="Cancel this ambulance request?" confirmLabel="Yes, cancel the request" busy={cancelling} onConfirm={cancel} onClose={() => setConfirmingCancel(false)}>
+          <p>This stops the active request <strong className="font-mono">{e.code}</strong>. The ambulance will be told to stop and the hospital's bed reservation will be released.</p>
+          <p>Only do this if help is no longer needed. If it is, call <a href={tel('108')} className="font-black underline">108</a> instead.</p>
+        </ConfirmDialog>
+      )}
 
       {e.isOpen && <FirstAidSteps categoryId={e.type} />}
       <div className="cc-card p-5 text-sm text-stone-700 space-y-1">

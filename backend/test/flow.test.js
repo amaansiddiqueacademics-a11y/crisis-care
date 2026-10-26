@@ -172,6 +172,15 @@ describe("security", () => {
     assert.ok(res.json.errors.length >= 2);
   });
 
+  it("seeds the 28-unit demo fleet with its initial availability", async () => {
+    const { rows } = await db.query("SELECT callsign, status, registration_number FROM ambulances ORDER BY callsign");
+    assert.equal(rows.length, 28);
+    assert.ok(rows.every((r) => r.registration_number.startsWith("DEV-")), "all fixtures are labelled development data");
+    assert.equal(rows.find((r) => r.callsign === "THN-BLS-23").status, "OFFLINE");
+    assert.equal(rows.find((r) => r.callsign === "NVM-BLS-26").status, "MAINTENANCE");
+    assert.equal(rows.filter((r) => r.status === "AVAILABLE").length, 26);
+  });
+
   it("never stores plaintext passwords", async () => {
     const { rows } = await db.query(
       "SELECT password_hash FROM hospital_admins UNION ALL SELECT password_hash FROM ambulance_crew UNION ALL SELECT password_hash FROM users"
@@ -228,7 +237,18 @@ describe("emergency lifecycle", () => {
     assert.match(code, /^CC-[A-Z0-9]{8}$/);
     assert.equal(res.json.data.status, "AMBULANCE_ASSIGNED");
     assert.equal(res.json.data.ambulance.callsign, "MUM-ALS-01");
+    // A seeded base-station position is not a live GPS fix: no arrival time is shown for it
+    assert.equal(res.json.data.ambulance.gps.state, "NONE");
+    assert.equal(res.json.data.ambulance.eta.status, "ESTIMATE");
+    assert.equal(res.json.data.ambulance.eta.basis, "BASE_STATION");
     assert.ok(res.json.data.ambulance.etaMinutes >= 1);
+    assert.match(res.json.data.ambulance.eta.message, /no live GPS/);
+    assert.equal(res.json.data.ambulance.phase, "TO_PATIENT");
+    assert.equal(res.json.data.navigation.label, "Navigate to Patient");
+    assert.deepEqual(
+      [res.json.data.navigation.destination.lat, res.json.data.navigation.destination.lng],
+      [19.0021, 72.8425]
+    );
     assert.equal(res.json.data.callerPhone, undefined, "citizen view must not expose contact data");
 
     const citizenSocket = await openSocket();
@@ -237,6 +257,49 @@ describe("emergency lifecycle", () => {
     const crewState = await call("GET", "/ambulance/me", { token: crew.token });
     assert.equal(crewState.json.data.emergency.code, code);
     assert.equal(crewState.json.data.ambulance.status, "DISPATCHED");
+
+    // Invalid fixes are refused and never stored
+    for (const bad of [{ lat: 0, lng: 0 }, { lat: 95, lng: 72.8 }, { lat: "x", lng: 72.8 }]) {
+      assert.equal((await call("PUT", "/ambulance/location", { token: crew.token, body: bad })).status, 400);
+    }
+
+    // Live GPS: the citizen sees the unit exactly where it reported itself, with a labelled estimate
+    const moved = waitFor(citizenSocket, "emergency:changed", (p) => p.code === code);
+    const fix = await call("PUT", "/ambulance/location", { token: crew.token, body: { lat: 19.0301, lng: 72.8501 } });
+    assert.equal(fix.status, 200);
+    await moved;
+    const live = (await call("GET", `/emergencies/${code}`)).json.data.ambulance;
+    assert.equal(live.gps.state, "LIVE");
+    assert.deepEqual([live.lat, live.lng], [19.0301, 72.8501]);
+    assert.ok(live.eta.minutes >= 1);
+    assert.equal(live.eta.status, "ESTIMATE");
+    assert.equal(live.eta.method, "STRAIGHT_LINE");
+    assert.equal(live.eta.basis, undefined, "live estimates are not base-station estimates");
+
+    const nearby = await call("GET", `/emergencies/${code}/nearby-ambulances`);
+    assert.equal(nearby.status, 200);
+    assert.equal(nearby.json.data[0].callsign, "MUM-ALS-01");
+    assert.equal(nearby.json.data[0].assigned, true);
+    assert.ok(nearby.json.data.length > 1);
+    assert.ok(nearby.json.data.every((u) => u.crew === undefined));
+    assert.match(live.eta.message, /not a road-route time/);
+
+    // The estimate follows the unit: closer to the patient means fewer minutes
+    await call("PUT", "/ambulance/location", { token: crew.token, body: { lat: 19.0023, lng: 72.8427 } });
+    const closer = (await call("GET", `/emergencies/${code}`)).json.data.ambulance;
+    assert.deepEqual([closer.lat, closer.lng], [19.0023, 72.8427]);
+    assert.ok(closer.eta.minutes < live.eta.minutes);
+
+    // A stale fix hides the number instead of showing a misleading one
+    await db.query(
+      "UPDATE ambulances SET last_location_update = NOW() - INTERVAL '20 minutes' WHERE callsign = 'MUM-ALS-01'"
+    );
+    const stale = (await call("GET", `/emergencies/${code}`)).json.data.ambulance;
+    assert.equal(stale.gps.state, "STALE");
+    assert.equal(stale.etaMinutes, null);
+    assert.match(stale.eta.message, /hidden until a fresh GPS/);
+    assert.deepEqual([stale.lat, stale.lng], [19.0023, 72.8427], "last known position is still shown");
+    await call("PUT", "/ambulance/location", { token: crew.token, body: { lat: 19.0023, lng: 72.8427 } });
 
     const changed = waitFor(citizenSocket, "emergency:changed", (p) => p.code === code);
     const saved = await call("POST", "/ambulance/emergency/assessment", {
@@ -359,11 +422,36 @@ describe("emergency lifecycle", () => {
   it("walks the ambulance through every stage and consumes the bed on handover", async () => {
     const step = (s) => call("POST", "/ambulance/emergency/stage", { token: crew.token, body: { step: s } });
 
+    const nav = async () => (await call("GET", `/emergencies/${code}`)).json.data;
+
     assert.equal((await step("START_TRANSPORT")).status, 409, "must be on scene first");
+
+    // Hospital already accepted, but the patient is not on board: still heading to the patient
+    let v = await nav();
+    assert.equal(v.ambulance.phase, "TO_PATIENT");
+    assert.equal(v.navigation.destination.kind, "PATIENT");
+    assert.equal(v.navigation.label, "Navigate to Patient");
+
     assert.equal((await step("ARRIVE_SCENE")).status, 200);
+    v = await nav();
+    assert.equal(v.ambulance.phase, "AT_PATIENT");
+    assert.equal(v.ambulance.eta.status, "ARRIVED");
+    assert.equal(v.navigation.destination.kind, "HOSPITAL", "accepted hospital becomes the destination");
+    assert.equal(v.navigation.destination.lat, v.hospital.lat);
+    assert.equal(v.navigation.destination.lng, v.hospital.lng);
+
     assert.equal((await step("HANDOVER")).status, 409);
     assert.equal((await step("START_TRANSPORT")).status, 200);
+    v = await nav();
+    assert.equal(v.ambulance.phase, "TO_HOSPITAL");
+    assert.equal(v.navigation.label, "Navigate to Hospital");
+    assert.equal(v.ambulance.eta.to, "HOSPITAL");
+    assert.equal(v.ambulance.eta.status, "ESTIMATE", "estimate is from the unit's live position to the hospital");
+
     assert.equal((await step("ARRIVE_HOSPITAL")).status, 200);
+    v = await nav();
+    assert.equal(v.ambulance.phase, "AT_HOSPITAL");
+    assert.equal(v.navigation.destination, null);
     assert.equal((await step("HANDOVER")).status, 200);
 
     const view = await call("GET", `/emergencies/${code}`);
@@ -441,5 +529,213 @@ describe("emergency lifecycle", () => {
 
     await assert.rejects(db.query("DELETE FROM audit_logs"), /append-only/);
     await assert.rejects(db.query("UPDATE audit_logs SET action = 'tampered'"), /append-only/);
+  });
+});
+
+describe("cancellation and fleet", () => {
+  const report = (lat = 19.0021, lng = 72.8425, type = "Traffic Accident") =>
+    call("POST", "/emergencies", { body: { type, lat, lng } });
+  const crewOf = (callsign) => login("ambulance", callsign.toLowerCase(), CREW_PASSWORD);
+  const icuReserved = async (hospitalId) =>
+    (
+      await db.query(
+        `SELECT reserved_quantity FROM hospital_inventory hi JOIN resources r USING (resource_id)
+         WHERE hi.hospital_id = $1 AND r.resource_code = 'ICU_BED'`,
+        [hospitalId]
+      )
+    ).rows[0].reserved_quantity;
+  let kem;
+  let kemId;
+  let admin;
+
+  before(async () => {
+    kem = await login("hospital", "kem_mumbai", passwordFor("kem_mumbai"));
+    kemId = kem.user.hospitalId;
+    admin = await login("admin", ADMIN_EMAIL, ADMIN_PASSWORD);
+    await call("PATCH", "/hospital/inventory/ICU_BED", { token: kem.token, body: { quantity: 5 } });
+    // Earlier tests parked the whole fleet offline: restore the seeded availability.
+    await db.query(
+      `UPDATE ambulances SET status = CASE callsign
+         WHEN 'THN-BLS-23' THEN 'OFFLINE' WHEN 'NVM-BLS-26' THEN 'MAINTENANCE' ELSE 'AVAILABLE' END
+       WHERE current_emergency_id IS NULL`
+    );
+  });
+
+  /** Report, assess, ask KEM and have KEM accept: leaves a unit with an accepted hospital. */
+  const acceptedCall = async () => {
+    const created = await report();
+    assert.equal(created.status, 201);
+    const code = created.json.data.code;
+    const crew = await crewOf(created.json.data.ambulance.callsign);
+    await call("POST", "/ambulance/emergency/assessment", {
+      token: crew.token,
+      body: { consciousness: "conscious", breathing: "normal", pulseStatus: "normal", severeBleeding: false }
+    });
+    await call("POST", "/ambulance/emergency/select-hospital", { token: crew.token, body: { hospitalId: kemId } });
+    const [request] = (await call("GET", "/hospital/requests", { token: kem.token })).json.data.filter(
+      (r) => r.status === "pending" && r.emergency.code === code
+    );
+    const accepted = await call("POST", `/hospital/requests/${request.responseId}/respond`, {
+      token: kem.token,
+      body: { decision: "ACCEPT" }
+    });
+    assert.equal(accepted.status, 200);
+    return { code, crew, callsign: created.json.data.ambulance.callsign };
+  };
+
+  it("citizen cancellation releases the bed and the unit, and tells every screen", async () => {
+    const before = await icuReserved(kemId);
+    const { code, crew, callsign } = await acceptedCall();
+    assert.equal(await icuReserved(kemId), before + 1);
+
+    const crewSocket = await openSocket(crew.token);
+    const kemSocket = await openSocket(kem.token);
+    const crewNotified = waitFor(crewSocket, "emergency:changed", (p) => p.code === code);
+    const kemNotified = waitFor(kemSocket, "emergency:changed", (p) => p.code === code);
+
+    const res = await call("POST", `/emergencies/${code}/cancel`);
+    assert.equal(res.status, 200);
+    assert.equal(res.json.data.status, "CANCELLED");
+    assert.equal(res.json.data.isOpen, false);
+    assert.equal(res.json.data.ambulance.lat, null, "a finished call does not keep tracking a unit");
+    assert.equal(res.json.data.navigation, null);
+    await crewNotified;
+    await kemNotified;
+
+    assert.equal(await icuReserved(kemId), before, "ICU reservation released");
+    const unit = (await db.query("SELECT status, current_emergency_id FROM ambulances WHERE callsign = $1", [callsign])).rows[0];
+    assert.equal(unit.status, "AVAILABLE");
+    assert.equal(unit.current_emergency_id, null);
+    assert.equal((await call("GET", "/ambulance/me", { token: crew.token })).json.data.emergency, null);
+
+    // The hospital no longer has an active request for it
+    const list = (await call("GET", "/hospital/requests", { token: kem.token })).json.data;
+    assert.ok(!list.some((r) => r.emergency.code === code && r.status === "pending"));
+
+    // Cancelling twice is refused with a clear reason, and nothing is released twice
+    const again = await call("POST", `/emergencies/${code}/cancel`);
+    assert.equal(again.status, 409);
+    assert.match(again.json.message, /already cancelled/);
+    assert.equal(await icuReserved(kemId), before);
+
+    // A cancelled call can no longer be driven by the crew
+    const stage = await call("POST", "/ambulance/emergency/stage", { token: crew.token, body: { step: "ARRIVE_SCENE" } });
+    assert.equal(stage.status, 409);
+
+    const audit = await call("GET", `/admin/audit-logs?search=${code}`, { token: admin.token });
+    assert.ok(audit.json.data.some((l) => /Citizen cancelled/.test(l.action)));
+  });
+
+  it("refuses cancellation once transport has started, for citizen and dispatcher", async () => {
+    const { code, crew } = await acceptedCall();
+    const step = (s) => call("POST", "/ambulance/emergency/stage", { token: crew.token, body: { step: s } });
+    assert.equal((await step("ARRIVE_SCENE")).status, 200);
+    assert.equal((await step("START_TRANSPORT")).status, 200);
+
+    const citizen = await call("POST", `/emergencies/${code}/cancel`);
+    assert.equal(citizen.status, 409);
+    assert.match(citizen.json.message, /on the way to the hospital/);
+
+    const dispatcher = await call("POST", `/admin/emergencies/${code}/cancel`, {
+      token: admin.token,
+      body: { reason: "Duplicate report" }
+    });
+    assert.equal(dispatcher.status, 409);
+
+    // Still fully active
+    const view = await call("GET", `/emergencies/${code}`);
+    assert.equal(view.json.data.status, "TRANSPORTING");
+    assert.equal(await icuReserved(kemId) >= 1, true);
+
+    assert.equal((await step("ARRIVE_HOSPITAL")).status, 200);
+    assert.equal((await step("HANDOVER")).status, 200);
+  });
+
+  it("dispatcher cancellation needs a reason, is audited and cannot be repeated", async () => {
+    const created = await report();
+    const code = created.json.data.code;
+    const callsign = created.json.data.ambulance.callsign;
+
+    const none = await call("POST", `/admin/emergencies/${code}/cancel`, { token: admin.token, body: {} });
+    assert.equal(none.status, 400);
+    const short = await call("POST", `/admin/emergencies/${code}/cancel`, { token: admin.token, body: { reason: "x" } });
+    assert.equal(short.status, 400);
+    assert.equal((await call("GET", `/emergencies/${code}`)).json.data.status, "AMBULANCE_ASSIGNED", "nothing changed");
+
+    const done = await call("POST", `/admin/emergencies/${code}/cancel`, { token: admin.token, body: { reason: "Prank call" } });
+    assert.equal(done.status, 200);
+    assert.equal((await call("GET", `/emergencies/${code}`)).json.data.status, "CANCELLED");
+
+    const unit = (await db.query("SELECT status, current_emergency_id FROM ambulances WHERE callsign = $1", [callsign])).rows[0];
+    assert.equal(unit.status, "AVAILABLE");
+    assert.equal(unit.current_emergency_id, null);
+
+    const repeat = await call("POST", `/admin/emergencies/${code}/cancel`, { token: admin.token, body: { reason: "Prank call" } });
+    assert.equal(repeat.status, 409);
+
+    const audit = await call("GET", `/admin/audit-logs?search=${code}`, { token: admin.token });
+    const entries = audit.json.data.filter((l) => /Dispatcher cancelled/.test(l.action));
+    assert.equal(entries.length, 1, "exactly one audit entry despite the repeated request");
+    assert.match(entries[0].action, /Prank call/);
+
+    // Not allowed for non-admins
+    assert.equal((await call("POST", `/admin/emergencies/${code}/cancel`, { token: kem.token, body: { reason: "Prank call" } })).status, 403);
+  });
+
+  it("only gives a call to an eligible unit: a cancelled call frees it for the next one, never twice", async () => {
+    const first = await report();
+    const second = await report();
+    assert.notEqual(first.json.data.ambulance.callsign, second.json.data.ambulance.callsign);
+
+    // Cancelling the first must not free the unit that works on the second
+    await call("POST", `/emergencies/${first.json.data.code}/cancel`);
+    const busy = (
+      await db.query("SELECT status, current_emergency_id FROM ambulances WHERE callsign = $1", [second.json.data.ambulance.callsign])
+    ).rows[0];
+    assert.equal(busy.status, "DISPATCHED");
+    assert.notEqual(busy.current_emergency_id, null);
+    await call("POST", `/emergencies/${second.json.data.code}/cancel`);
+
+    const { rows } = await db.query(
+      "SELECT ambulance_id FROM ambulances WHERE current_emergency_id IS NOT NULL GROUP BY ambulance_id HAVING COUNT(*) > 1"
+    );
+    assert.equal(rows.length, 0);
+  });
+
+  it("has the extended demo fleet, and OFFLINE or MAINTENANCE units are never dispatched", async () => {
+    // THN-BLS-23 (offline) is stationed in Ulhasnagar and NVM-BLS-26 (maintenance) in Panvel:
+    // right at those spots, someone else must be sent.
+    for (const [lat, lng, excluded] of [[19.2183, 73.1612, "THN-BLS-23"], [18.9893, 73.1168, "NVM-BLS-26"]]) {
+      const created = await report(lat, lng, "Other Emergency");
+      assert.equal(created.json.data.status, "AMBULANCE_ASSIGNED");
+      assert.notEqual(created.json.data.ambulance.callsign, excluded);
+      await call("POST", `/emergencies/${created.json.data.code}/cancel`);
+    }
+
+    // The dispatcher cannot force an unavailable unit onto a call either
+    const open = await report();
+    const offline = (await db.query("SELECT ambulance_id FROM ambulances WHERE callsign = 'THN-BLS-23'")).rows[0].ambulance_id;
+    const forced = await call("POST", `/admin/emergencies/${open.json.data.code}/assign`, { token: admin.token, body: { ambulanceId: offline } });
+    assert.equal(forced.status, 409);
+    await call("POST", `/emergencies/${open.json.data.code}/cancel`);
+
+    // Every added crew can sign in and sees only its own unit
+    const crew = await crewOf("NVM-ALS-24");
+    assert.equal((await call("GET", "/ambulance/me", { token: crew.token })).json.data.ambulance.callsign, "NVM-ALS-24");
+
+    // Dispatch sees all of them
+    const board = await call("GET", "/admin/dispatch", { token: admin.token });
+    assert.equal(board.json.data.ambulances.length, 28);
+  });
+
+  it("seeding again creates no duplicate units, crews or accounts", async () => {
+    const count = async () =>
+      (await db.query("SELECT (SELECT COUNT(*) FROM ambulances) a, (SELECT COUNT(*) FROM ambulance_crew) c")).rows[0];
+    const statusBefore = (await db.query("SELECT callsign, status FROM ambulances ORDER BY callsign")).rows;
+    const before = await count();
+    execFileSync("node", ["src/scripts/seedDatabase.js"], { cwd: backendDir, env: process.env, stdio: "pipe" });
+    const after = await count();
+    assert.deepEqual(after, before);
+    assert.deepEqual((await db.query("SELECT callsign, status FROM ambulances ORDER BY callsign")).rows, statusBefore, "re-seeding keeps live status");
   });
 });

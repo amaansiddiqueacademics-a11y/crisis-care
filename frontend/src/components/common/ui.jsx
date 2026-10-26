@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { PhoneCall } from 'lucide-react';
 import { HELPLINES, tel } from '../../data/helplines';
 
@@ -88,3 +88,32 @@ export const Pill = ({ on, onClick, children, tone = 'amber' }) => (
 
 export const ErrorNote = ({ error }) =>
   error ? <div className="cc-card border-red-300 bg-red-50 p-4 text-sm text-red-800">{error.message}</div> : null;
+
+/**
+ * Modal confirmation. `children` explains what will happen; the confirm button stays disabled
+ * (and says "Working…") until the server has answered, so nothing looks done before it is.
+ */
+export const ConfirmDialog = ({ title, confirmLabel, cancelLabel = 'Keep it', busy = false, canConfirm = true, onConfirm, onClose, tone = 'danger', children }) => {
+  const first = useRef(null);
+  useEffect(() => {
+    first.current?.focus();
+    const onKey = (ev) => { if (ev.key === 'Escape' && !busy) onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [busy, onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-end sm:items-center justify-center bg-black/50 p-4" onMouseDown={(ev) => { if (ev.target === ev.currentTarget && !busy) onClose(); }}>
+      <div role="alertdialog" aria-modal="true" aria-labelledby="cc-confirm-title" className="cc-card w-full max-w-md p-6 space-y-4 shadow-2xl">
+        <h2 id="cc-confirm-title" className="text-xl font-black">{title}</h2>
+        <div className="text-sm text-stone-600 space-y-3">{children}</div>
+        <div className="flex flex-wrap justify-end gap-2">
+          <button ref={first} type="button" onClick={onClose} disabled={busy} className="cc-btn-outline !py-2.5">{cancelLabel}</button>
+          <button type="button" onClick={onConfirm} disabled={busy || !canConfirm} className={`cc-btn !py-2.5 text-white disabled:opacity-50 ${tone === 'danger' ? 'bg-red-700 hover:bg-red-800' : 'bg-stone-900 hover:bg-stone-800'}`}>
+            {busy ? 'Working…' : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

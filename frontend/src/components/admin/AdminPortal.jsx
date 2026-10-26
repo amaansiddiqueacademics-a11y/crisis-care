@@ -9,7 +9,8 @@ import { api } from '../../api/client';
 import { findCategory } from '../../data/emergencyCategories';
 import { tel } from '../../data/helplines';
 import { MapView } from '../common/MapView';
-import { ErrorNote, Field, TriageBadge, minutesAgo, timeAgo } from '../common/ui';
+import { ConfirmDialog, ErrorNote, Field, TriageBadge, minutesAgo, timeAgo } from '../common/ui';
+import { etaShort, gpsText, routeLine, trackingMarkers } from '../common/tracking';
 
 const km = (a, b) => {
   const rad = (d) => (d * Math.PI) / 180;
@@ -35,7 +36,8 @@ const problemsOf = (e) => {
   if (e.status === 'SEARCHING') out.push(`No ambulance for ${e.waitingMinutes} min: assign one or call 108 control`);
   if (e.status === 'HOSPITAL_PENDING' && minutesAgo(e.updatedAt) >= 4) out.push(`${e.hospital?.name} has not answered for ${minutesAgo(e.updatedAt)} min: call them`);
   if (e.declinedHospitals.length >= 2) out.push(`${e.declinedHospitals.length} hospitals declined: help the crew find a bed`);
-  if (e.status === 'AMBULANCE_ASSIGNED' && e.ambulance?.etaMinutes > 20) out.push(`Unit is ~${e.ambulance.etaMinutes} min away: is a closer one free?`);
+  if (e.status === 'AMBULANCE_ASSIGNED' && e.ambulance?.etaMinutes > 20) out.push(`Unit is ~${e.ambulance.etaMinutes} min away (estimate): is a closer one free?`);
+  if (e.ambulance && e.ambulance.gps?.state !== 'LIVE' && ['AMBULANCE_ASSIGNED', 'TRANSPORTING'].includes(e.status)) out.push(`${e.ambulance.callsign} has no live GPS (${gpsText(e.ambulance).toLowerCase()}): call the crew`);
   return out;
 };
 
@@ -73,7 +75,7 @@ const IncidentPanel = ({ e, units, onAssign, onCancel }) => {
 
       <div className="grid md:grid-cols-2 gap-5 p-5">
         <dl className="grid grid-cols-2 gap-3 content-start">
-          <Field label="Ambulance">{e.ambulance ? `${e.ambulance.callsign} · ${e.ambulance.paramedicName || ''} · ~${e.ambulance.etaMinutes} min` : 'None'}</Field>
+          <Field label="Ambulance">{e.ambulance ? `${e.ambulance.callsign} · ${e.ambulance.paramedicName || ''} · ${etaShort(e.ambulance)}` : 'None'}</Field>
           <Field label="Hospital">{e.hospital ? `${e.hospital.name} (${e.hospital.response || 'asked'})` : 'Not chosen'}</Field>
           <Field label="Patient">{[p?.fullName, p?.ageGroup?.toLowerCase(), p?.sex?.toLowerCase(), p?.bloodGroup].filter(Boolean).join(', ') || 'Unknown'}</Field>
           <Field label="Needs">{e.needs?.join(', ')}</Field>
@@ -85,14 +87,7 @@ const IncidentPanel = ({ e, units, onAssign, onCancel }) => {
         </dl>
         <div className="space-y-3">
           {e.photo && <img src={e.photo} alt="Reporter photo" className="w-full max-h-48 object-cover rounded-xl border border-stone-200" />}
-          <MapView
-            height="220px"
-            markers={[
-              { id: 'p', kind: 'patient', lat: e.lat, lng: e.lng, popup: 'Patient' },
-              e.ambulance?.lat != null && { id: 'a', kind: 'ambulance', lat: e.ambulance.lat, lng: e.ambulance.lng, label: e.ambulance.callsign },
-              e.hospital && { id: 'h', kind: 'hospital', lat: e.hospital.lat, lng: e.hospital.lng, label: e.hospital.name },
-            ].filter(Boolean)}
-          />
+          <MapView height="220px" markers={trackingMarkers(e)} route={routeLine(e)} />
         </div>
       </div>
 
@@ -114,6 +109,38 @@ const IncidentPanel = ({ e, units, onAssign, onCancel }) => {
   );
 };
 
+
+const CANCEL_REASONS = ['Duplicate report', 'Prank call', 'Patient left or was taken by other transport', 'Other'];
+
+/** Dispatcher cancellation: a reason is required and is written to the audit log. */
+const CancelCallDialog = ({ e, busy, onConfirm, onClose }) => {
+  const [choice, setChoice] = useState(null);
+  const [other, setOther] = useState('');
+  const reason = choice === 'Other' ? other.trim() : choice;
+  return (
+    <ConfirmDialog
+      title={`Cancel call ${e.code}?`}
+      confirmLabel="Cancel this call"
+      cancelLabel="Keep the call"
+      busy={busy}
+      canConfirm={Boolean(reason) && reason.length >= 3}
+      onConfirm={() => onConfirm(reason)}
+      onClose={onClose}
+    >
+      <p>The citizen, the ambulance crew{e.hospital ? ' and the hospital' : ''} will stop treating this as an active call. {e.ambulance ? `${e.ambulance.callsign} is released` : ''}{e.hospital?.response === 'accepted' ? ' and the hospital bed reservation is released' : ''}. This is recorded in the audit log.</p>
+      <fieldset className="space-y-1.5">
+        <legend className="cc-label">Reason (required)</legend>
+        {CANCEL_REASONS.map((r) => (
+          <label key={r} className="flex items-center gap-2 text-sm text-stone-800">
+            <input type="radio" name="cancel-reason" checked={choice === r} onChange={() => setChoice(r)} /> {r}
+          </label>
+        ))}
+        {choice === 'Other' && <input value={other} onChange={(ev) => setOther(ev.target.value)} maxLength={200} className="cc-input" placeholder="Say why (at least 3 letters)" aria-label="Other reason" />}
+      </fieldset>
+    </ConfirmDialog>
+  );
+};
+
 const Console = () => {
   const { sessions, authed, logout, showToast } = useCrisisCare();
   const session = sessions.admin;
@@ -121,6 +148,8 @@ const Console = () => {
   const board = useLive(() => authed('admin', '/admin/dispatch'), { ...opts, events: ['emergency:changed', 'inventory:changed'], pollMs: 15000 });
   const audit = useLive(() => authed('admin', '/admin/audit-logs?limit=60'), { ...opts, events: ['audit:new'], pollMs: 60000 });
   const [selectedCode, setSelectedCode] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelBusy, setCancelBusy] = useState(false);
 
   const emergencies = board.data?.emergencies || [];
   const units = board.data?.ambulances || [];
@@ -131,15 +160,21 @@ const Console = () => {
       const data = await authed('admin', path, { method: 'POST', body });
       board.setData(data);
       showToast(...msg);
+      return true;
     } catch (err) {
       showToast('Not done', err.message, 'warning');
+      board.refresh();
+      return false;
     }
   };
 
   const assign = (e, u) => act(`/admin/emergencies/${e.code}/assign`, { ambulanceId: u.id }, ['Unit assigned', `${u.callsign} is going to ${e.code}`, 'success']);
-  const cancel = (e) => {
-    const reason = window.prompt('Reason for cancelling (e.g. duplicate call, patient taken by private car, prank):');
-    if (reason && reason.trim().length >= 3) act(`/admin/emergencies/${e.code}/cancel`, { reason: reason.trim() }, ['Call cancelled', e.code, 'info']);
+  // The call leaves the board only when the server confirms; a refusal keeps it and says why.
+  const confirmCancel = async (reason) => {
+    setCancelBusy(true);
+    await act(`/admin/emergencies/${cancelTarget.code}/cancel`, { reason }, ['Call cancelled', `${cancelTarget.code}: ${reason}`, 'info']);
+    setCancelBusy(false);
+    setCancelTarget(null);
   };
 
   const exportCsv = async () => {
@@ -156,7 +191,7 @@ const Console = () => {
   const markers = useMemo(
     () => [
       ...emergencies.map((e) => ({ id: `e${e.id}`, kind: 'patient', lat: e.lat, lng: e.lng, color: e.priority === 'URGENT' ? '#DC2626' : '#F59E0B', popup: `${e.code} · ${findCategory(e.type).label}` })),
-      ...units.filter((u) => u.lat != null).map((u) => ({ id: `u${u.id}`, kind: 'ambulance', lat: u.lat, lng: u.lng, label: u.callsign, color: u.status === 'AVAILABLE' ? '#047857' : u.status === 'OFFLINE' ? '#78716C' : '#B45309' })),
+      ...units.filter((u) => u.lat != null).map((u) => ({ id: `u${u.id}`, kind: 'ambulance', lat: u.lat, lng: u.lng, label: u.emergencyCode && (!u.lastLocationUpdate || minutesAgo(u.lastLocationUpdate) > 5) ? `${u.callsign} · last known` : u.callsign, color: u.status === 'AVAILABLE' ? '#047857' : u.status === 'OFFLINE' ? '#78716C' : '#B45309' })),
     ],
     [emergencies, units],
   );
@@ -194,6 +229,7 @@ const Console = () => {
       </div>
 
       <MapView markers={markers} height="380px" />
+      {cancelTarget && <CancelCallDialog e={cancelTarget} busy={cancelBusy} onConfirm={confirmCancel} onClose={() => setCancelTarget(null)} />}
 
       <div className="grid lg:grid-cols-12 gap-6 items-start">
         <section className="lg:col-span-4 space-y-3" aria-label="Call queue">
@@ -220,7 +256,7 @@ const Console = () => {
         </section>
 
         <section className="lg:col-span-8 space-y-6">
-          {selected ? <IncidentPanel e={selected} units={units} onAssign={assign} onCancel={cancel} /> : <div className="cc-card p-10 text-center text-stone-400">Select a call.</div>}
+          {selected ? <IncidentPanel e={selected} units={units} onAssign={assign} onCancel={setCancelTarget} /> : <div className="cc-card p-10 text-center text-stone-400">Select a call.</div>}
 
           <div className="cc-card p-5 overflow-x-auto">
             <h3 className="text-lg font-black mb-3 flex items-center gap-2"><Truck className="w-5 h-5 text-amber-600" /> Fleet</h3>
@@ -228,7 +264,7 @@ const Console = () => {
               <thead className="text-xs text-stone-500 uppercase text-left"><tr><th className="py-1.5">Unit</th><th>Zone</th><th>Status</th><th>Crew</th><th>GPS</th><th>Call</th></tr></thead>
               <tbody className="divide-y divide-stone-100">
                 {units.map((u) => {
-                  const stale = u.lastLocationUpdate && minutesAgo(u.lastLocationUpdate) > 10;
+                  const stale = u.lastLocationUpdate && minutesAgo(u.lastLocationUpdate) > 5;
                   return (
                     <tr key={u.id}>
                       <td className="py-2 font-bold">{u.callsign} <span className="text-xs text-stone-400">{u.type}</span></td>

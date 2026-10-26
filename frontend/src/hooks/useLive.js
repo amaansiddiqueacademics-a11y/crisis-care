@@ -6,16 +6,31 @@ import { getSocket } from '../api/socket';
  * poll as a fallback for flaky mobile connections.
  */
 export function useLive(load, { token = null, events = [], pollMs = 20000, enabled = true, track = null, key = '' } = {}) {
-  const [data, setData] = useState(null);
+  const [data, setDataState] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updatedAt, setUpdatedAt] = useState(null);
   const loadRef = useRef(load);
   loadRef.current = load;
 
+  // A socket-triggered reload and a poll can be in flight together. Whichever STARTED last wins, so
+  // a slow older response can never overwrite newer coordinates or a newer status.
+  const startedRef = useRef(0);
+  const appliedRef = useRef(0);
+
+  /** Replace the data with a result that is newer than anything requested so far (e.g. an action's response). */
+  const setData = useCallback((next) => {
+    appliedRef.current = ++startedRef.current;
+    setDataState(next);
+  }, []);
+
   const refresh = useCallback(async () => {
+    const ticket = ++startedRef.current;
     try {
-      setData(await loadRef.current());
+      const result = await loadRef.current();
+      if (ticket < appliedRef.current) return;
+      appliedRef.current = ticket;
+      setDataState(result);
       setError(null);
       setUpdatedAt(new Date());
     } catch (e) {

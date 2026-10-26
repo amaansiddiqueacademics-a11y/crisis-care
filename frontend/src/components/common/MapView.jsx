@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 
 const escapeHtml = (text) =>
@@ -23,15 +23,51 @@ const ICONS = {
   hospital: (m) => L.divIcon({ className: '', html: tag('#1C1917', m.color || '#F59E0B', m.label), iconSize: [160, 32], iconAnchor: [80, 32], popupAnchor: [0, -32] }),
 };
 
-/** Re-frames only when the set of coordinates changes, so live updates don't jitter the map. */
-function FitView({ points }) {
+/**
+ * Frames the markers when the map first appears and when the SET of markers changes (a hospital
+ * accepts, a unit is assigned). A live position update only re-frames if a marker has left the
+ * view, and never after the user has panned or zoomed: then a "Re-centre" button appears instead.
+ */
+function FitView({ points, setKey, recenterSignal, onUserMoved }) {
   const map = useMap();
-  const key = points.map((p) => p.join(',')).join('|');
+  const userMoved = useRef(false);
+  const programmatic = useRef(false);
+
+  const frame = (list) => {
+    programmatic.current = true;
+    if (list.length === 1) map.setView(list[0], Math.max(map.getZoom(), 14), { animate: false });
+    else if (list.length > 1) map.fitBounds(list, { padding: [50, 50], maxZoom: 15, animate: false });
+    programmatic.current = false;
+  };
+
+  useMapEvents({
+    dragstart: () => { if (!programmatic.current) { userMoved.current = true; onUserMoved(true); } },
+    zoomstart: () => { if (!programmatic.current) { userMoved.current = true; onUserMoved(true); } },
+  });
+
+  // New set of markers: frame them (unless the user took control of the map).
   useEffect(() => {
-    if (points.length === 1) map.setView(points[0], 14, { animate: false });
-    else if (points.length > 1) map.fitBounds(points, { padding: [50, 50], maxZoom: 15, animate: false });
+    if (!userMoved.current) frame(points);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, key]);
+  }, [map, setKey]);
+
+  // A marker moved: only follow it if it left the visible area.
+  useEffect(() => {
+    if (userMoved.current) return;
+    const view = map.getBounds().pad(-0.1);
+    if (points.some((p) => !view.contains(p))) frame(points);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, JSON.stringify(points)]);
+
+  // "Re-centre" pressed.
+  useEffect(() => {
+    if (!recenterSignal) return;
+    userMoved.current = false;
+    onUserMoved(false);
+    frame(points);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recenterSignal]);
+
   return null;
 }
 
@@ -46,12 +82,15 @@ export const MapView = ({ markers = [], route = null, height = '360px', fitTo = 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [JSON.stringify((fitTo || valid).map((m) => [m.lat, m.lng]))],
   );
+  const setKey = (fitTo || valid).map((m) => m.id || m.kind).sort().join('|');
   const center = points[0] || [19.076, 72.8777];
+  const [moved, setMoved] = useState(false);
+  const [recenter, setRecenter] = useState(0);
 
   return (
     <div className="relative w-full rounded-2xl overflow-hidden border border-stone-200 bg-stone-100" style={{ height }}>
       <MapContainer center={center} zoom={12} scrollWheelZoom={false} className="w-full h-full">
-        <FitView points={points.length ? points : [center]} />
+        <FitView points={points.length ? points : [center]} setKey={setKey} recenterSignal={recenter} onUserMoved={setMoved} />
         <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {valid.map((m) => (
           <Marker key={m.id || `${m.kind}-${m.lat}-${m.lng}`} position={[m.lat, m.lng]} icon={ICONS[m.kind || 'patient'](m)}>
@@ -60,6 +99,11 @@ export const MapView = ({ markers = [], route = null, height = '360px', fitTo = 
         ))}
         {route && route.length > 1 && <Polyline positions={route} pathOptions={{ color: '#F59E0B', weight: 4, opacity: 0.9, dashArray: '10, 8' }} />}
       </MapContainer>
+      {moved && (
+        <button type="button" onClick={() => setRecenter((n) => n + 1)} className="absolute bottom-3 left-3 z-[500] rounded-xl bg-white border border-stone-300 shadow px-3 py-1.5 text-xs font-bold hover:bg-stone-50">
+          Re-centre map
+        </button>
+      )}
     </div>
   );
 };

@@ -93,7 +93,7 @@ const RequestCard = ({ r, onRespond }) => {
           <h3 className="text-lg font-black mt-1">{findCategory(e.type).label}</h3>
           <p className="text-xs text-stone-500 flex items-center gap-1"><Truck className="w-3.5 h-3.5" /> {e.ambulance?.callsign} · {e.ambulance?.paramedicName} · asked {timeAgo(r.requestedAt)}</p>
         </div>
-        {e.hospital && <div className="text-right"><div className="text-3xl font-black tabular-nums leading-none">~{e.hospital.etaMinutes}</div><div className="text-[11px] text-stone-500">min · {e.hospital.distanceKm} km</div></div>}
+        {e.hospital && <div className="text-right"><div className="text-3xl font-black tabular-nums leading-none">~{e.hospital.etaMinutes}</div><div className="text-[11px] text-stone-500">min est. · {e.hospital.distanceKm} km</div></div>}
       </div>
 
       {a?.findings?.triageReasons?.length > 0 && <p className="text-xs font-bold text-red-700">{a.findings.triageReasons.join(' · ')}</p>}
@@ -139,7 +139,7 @@ const RequestCard = ({ r, onRespond }) => {
         )
       ) : (
         <p className={`text-sm font-bold ${r.status === 'accepted' ? 'text-emerald-700' : 'text-stone-500'}`}>
-          {r.status === 'accepted' ? `Accepted ${timeAgo(r.respondedAt)}. Ambulance status: ${e.status.replace('_', ' ').toLowerCase()}` : `Declined: ${r.declineReason}`}
+          {r.status === 'accepted' ? (e.status === 'CANCELLED' ? `Accepted ${timeAgo(r.respondedAt)}, then the request was CANCELLED. Your ICU reservation was released: no patient is coming.` : `Accepted ${timeAgo(r.respondedAt)}. Ambulance status: ${e.status.replace('_', ' ').toLowerCase()}`) : `Declined: ${r.declineReason}`}
         </p>
       )}
     </div>

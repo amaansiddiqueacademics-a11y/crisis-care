@@ -3,8 +3,9 @@ import crypto from "node:crypto";
 import pool, { withTransaction } from "../config/db.js";
 import { config } from "../config/env.js";
 import { badRequest, conflict, notFound } from "../utils/AppError.js";
-import { etaMinutes, metersToKm } from "../utils/geo.js";
-import { notifyAudit, notifyEmergency } from "../realtime/socket.js";
+import { etaMinutes, isValidCoordinate, metersToKm } from "../utils/geo.js";
+import { buildEta, buildNavigation, gpsState, PHASES } from "../utils/tracking.js";
+import { notifyAudit, notifyEmergency, notifyInventory } from "../realtime/socket.js";
 import { releaseIcuBed } from "./inventoryService.js";
 import { recordAudit } from "./auditService.js";
 import { assessFit, computeTriage, reportPriority, requirementsFor } from "./matching.js";
@@ -70,7 +71,10 @@ export const getEmergencyView = async (db, where, value, { forCrew = false, clin
     `
     SELECT e.*,
            a.callsign, a.status AS ambulance_status, a.latitude AS amb_lat, a.longitude AS amb_lng,
+           a.last_location_update AS amb_gps_at,
+           EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - a.last_location_update)) AS amb_gps_age,
            ST_Distance(a.location, e.location) AS amb_dist,
+           ST_Distance(a.location, h.location) AS amb_h_dist,
            h.name AS h_name, h.address AS h_address, h.phone AS h_phone,
            h.latitude AS h_lat, h.longitude AS h_lng,
            ST_Distance(h.location, e.location) AS h_dist,
@@ -118,9 +122,31 @@ export const getEmergencyView = async (db, where, value, { forCrew = false, clin
 
   const v = vitals.rows[0];
   const s = surgeon.rows[0];
-  const arrivedAtScene = ["AT_SCENE", "TRANSPORTING", "AT_HOSPITAL"].includes(
-    e.ambulance_status
-  );
+  const isOpen = OPEN_STATUSES.includes(e.status);
+  const hospitalAccepted = e.response_status === "ACCEPTED";
+
+  // Live tracking only makes sense while the call is open; a finished call keeps the unit's name
+  // but not its (now unrelated) position.
+  const phase = isOpen && e.ambulance_id ? PHASES[e.ambulance_status] ?? null : null;
+  const gps = gpsState({
+    lat: e.amb_lat,
+    lng: e.amb_lng,
+    lastUpdate: e.amb_gps_at,
+    ageSeconds: e.amb_gps_age == null ? null : Number(e.amb_gps_age)
+  });
+  const shownPosition = isOpen && gps !== "INVALID" && e.amb_lat != null;
+  const eta = buildEta({
+    phase,
+    gps,
+    ageSeconds: Number(e.amb_gps_age),
+    distanceM: phase === "TO_HOSPITAL" ? e.amb_h_dist : e.amb_dist
+  });
+  const navigation = buildNavigation({
+    phase,
+    patient: { lat: e.latitude, lng: e.longitude },
+    hospital: e.selected_hospital_id ? { name: e.h_name, lat: e.h_lat, lng: e.h_lng } : null,
+    hospitalAccepted
+  });
 
   return {
     id: e.request_id,
@@ -133,7 +159,7 @@ export const getEmergencyView = async (db, where, value, { forCrew = false, clin
     lng: e.longitude,
     status: e.status,
     statusStep: statusStep(e, Boolean(v)),
-    isOpen: OPEN_STATUSES.includes(e.status),
+    isOpen,
     priority: e.priority,
     createdAt: e.created_at,
     updatedAt: e.updated_at,
@@ -163,13 +189,21 @@ export const getEmergencyView = async (db, where, value, { forCrew = false, clin
           id: e.ambulance_id,
           callsign: e.callsign,
           paramedicName: e.paramedic_name,
-          status: e.ambulance_status,
-          lat: e.amb_lat,
-          lng: e.amb_lng,
-          distanceKm: metersToKm(e.amb_dist),
-          etaMinutes: arrivedAtScene ? 0 : etaMinutes(e.amb_dist)
+          status: isOpen ? e.ambulance_status : null,
+          phase,
+          lat: shownPosition ? e.amb_lat : null,
+          lng: shownPosition ? e.amb_lng : null,
+          gps: {
+            state: isOpen ? gps : "NONE",
+            lastUpdate: e.amb_gps_at,
+            ageSeconds: e.amb_gps_age == null ? null : Math.round(Number(e.amb_gps_age))
+          },
+          distanceKm: shownPosition ? metersToKm(e.amb_dist) : null,
+          eta,
+          etaMinutes: eta.minutes
         }
       : null,
+    navigation,
     assessment: v
       ? {
           consciousness: v.consciousness,
@@ -258,6 +292,7 @@ const assignNearestAmbulance = async (client, emergency) => {
     SELECT ambulance_id
     FROM ambulances
     WHERE status = 'AVAILABLE'
+      AND current_emergency_id IS NULL
       AND location IS NOT NULL
       AND ST_DWithin(location, $1::geography, $2)
     -- Urgent calls prefer an Advanced Life Support unit unless a basic one is much closer.
@@ -284,6 +319,42 @@ const assignNearestAmbulance = async (client, emergency) => {
   );
 
   return ambulanceId;
+};
+
+/**
+ * Ambulances around an open emergency for the citizen's map: the assigned unit plus the nearest free
+ * ones, with straight-line estimates from their last known (or base-station) position. Public data
+ * only: call sign, type and position, never crew names.
+ */
+export const listNearbyUnits = async (code) => {
+  const { rows } = await pool.query(
+    `
+    SELECT a.ambulance_id, a.callsign, a.ambulance_type, a.status, a.latitude, a.longitude,
+           a.last_location_update, COALESCE(a.current_emergency_id = e.request_id, false) AS assigned,
+           ST_Distance(a.location, e.location) AS dist
+    FROM emergency_requests e
+    JOIN ambulances a ON a.location IS NOT NULL
+      AND (a.current_emergency_id = e.request_id
+           OR (a.status = 'AVAILABLE' AND ST_DWithin(a.location, e.location, $2)))
+    WHERE e.emergency_code = $1 AND e.status = ANY($3)
+    ORDER BY assigned DESC, dist
+    LIMIT 6
+    `,
+    [code, config.dispatchRadiusKm * 1000, OPEN_STATUSES]
+  );
+
+  return rows.map((a) => ({
+    id: a.ambulance_id,
+    callsign: a.callsign,
+    type: a.ambulance_type,
+    status: a.status,
+    lat: a.latitude,
+    lng: a.longitude,
+    assigned: Boolean(a.assigned),
+    liveGps: a.last_location_update != null,
+    distanceKm: metersToKm(a.dist),
+    etaMinutes: etaMinutes(a.dist)
+  }));
 };
 
 /**
@@ -399,6 +470,7 @@ export const createEmergency = async (input) => {
 
 /**
  * Close out an emergency: free its ambulance and release/consume any ICU reservation.
+ * Returns the hospitals whose stock changed, so the caller can tell them after commit.
  */
 const finishEmergency = async (client, emergency, finalStatus, actor) => {
   const { rows } = await client.query(
@@ -418,16 +490,35 @@ const finishEmergency = async (client, emergency, finalStatus, actor) => {
     [emergency.request_id, finalStatus]
   );
 
+  // Only a unit that is still bound to THIS call is released, and only back to AVAILABLE when it
+  // was busy with the call. A unit that was meanwhile taken off duty keeps that status.
   if (emergency.ambulance_id) {
     await client.query(
-      "UPDATE ambulances SET status = 'AVAILABLE', current_emergency_id = NULL WHERE ambulance_id = $1",
-      [emergency.ambulance_id]
+      `UPDATE ambulances
+       SET current_emergency_id = NULL,
+           status = CASE WHEN status IN ('DISPATCHED', 'EN_ROUTE', 'AT_SCENE', 'TRANSPORTING', 'AT_HOSPITAL')
+                         THEN 'AVAILABLE' ELSE status END
+       WHERE ambulance_id = $1 AND current_emergency_id = $2`,
+      [emergency.ambulance_id, emergency.request_id]
+    );
+  }
+
+  return rows.map((r) => Number(r.hospital_id));
+};
+
+/** Cancellation is allowed until transport starts. Each refusal says why and what to do. */
+const assertCancellable = (emergency) => {
+  if (emergency.status === "CANCELLED") throw conflict("This emergency was already cancelled.");
+  if (emergency.status === "CLOSED") throw conflict("This emergency is already completed.");
+  if (["TRANSPORTING", "ARRIVED"].includes(emergency.status)) {
+    throw conflict(
+      "The patient is already on the way to the hospital, so the request can no longer be cancelled here. Tell the crew, or call 108."
     );
   }
 };
 
 export const cancelEmergency = async (code) => {
-  const requestId = await withTransaction(async (client) => {
+  const { requestId, hospitalIds } = await withTransaction(async (client) => {
     const { rows } = await client.query(
       "SELECT * FROM emergency_requests WHERE emergency_code = $1 FOR UPDATE",
       [code]
@@ -437,19 +528,23 @@ export const cancelEmergency = async (code) => {
 
     if (!emergency) throw notFound("Emergency not found");
 
-    if (["TRANSPORTING", "ARRIVED", "CLOSED", "CANCELLED"].includes(emergency.status)) {
-      throw conflict("This emergency can no longer be cancelled");
-    }
+    assertCancellable(emergency);
 
-    await finishEmergency(client, emergency, "CANCELLED", {
-      ...SYSTEM_ACTOR,
-      actorName: "Citizen (cancelled)"
+    const actor = { ...SYSTEM_ACTOR, actorName: "Citizen (cancelled)" };
+    const released = await finishEmergency(client, emergency, "CANCELLED", actor);
+
+    await recordAudit(client, {
+      ...actor,
+      action: `Citizen cancelled ${code} (status was ${emergency.status})`,
+      entityType: "emergency_requests",
+      entityId: emergency.request_id
     });
 
-    return emergency.request_id;
+    return { requestId: emergency.request_id, hospitalIds: released };
   });
 
   await publishEmergency(requestId);
+  hospitalIds.forEach(notifyInventory);
   notifyAudit();
   await dispatchPending();
 
@@ -494,6 +589,9 @@ export const getAmbulanceOverview = async (ambulanceId) => {
 };
 
 export const updateAmbulanceLocation = async (ambulanceId, lat, lng) => {
+  // (0, 0) is what many devices report when they have no fix: never store it as a position.
+  if (!isValidCoordinate(lat, lng)) throw badRequest("That is not a valid GPS position");
+
   const { rows } = await pool.query(
     `UPDATE ambulances
      SET latitude = $2, longitude = $3,
@@ -964,7 +1062,7 @@ export const dispatcherAssign = async (code, ambulanceId, actor) => {
 
 /** Dispatcher closes a call that needs no ambulance (duplicate, prank, patient left). */
 export const dispatcherCancel = async (code, reason, actor) => {
-  const requestId = await withTransaction(async (client) => {
+  const { requestId, hospitalIds } = await withTransaction(async (client) => {
     const { rows } = await client.query(
       "SELECT * FROM emergency_requests WHERE emergency_code = $1 FOR UPDATE",
       [code]
@@ -972,22 +1070,23 @@ export const dispatcherCancel = async (code, reason, actor) => {
     const emergency = rows[0];
 
     if (!emergency) throw notFound("Emergency not found");
-    if (["TRANSPORTING", "ARRIVED", "CLOSED", "CANCELLED"].includes(emergency.status)) {
-      throw conflict("This emergency can no longer be cancelled");
-    }
+    assertCancellable(emergency);
 
-    await finishEmergency(client, emergency, "CANCELLED", actor);
+    const released = await finishEmergency(client, emergency, "CANCELLED", actor);
     await recordAudit(client, {
       ...actor,
       action: `Dispatcher cancelled ${code}: ${reason}`,
       entityType: "emergency_requests",
-      entityId: emergency.request_id
+      entityId: emergency.request_id,
+      oldValues: { status: emergency.status },
+      newValues: { status: "CANCELLED", reason }
     });
 
-    return emergency.request_id;
+    return { requestId: emergency.request_id, hospitalIds: released };
   });
 
   await publishEmergency(requestId);
+  hospitalIds.forEach(notifyInventory);
   notifyAudit();
   await dispatchPending();
 };

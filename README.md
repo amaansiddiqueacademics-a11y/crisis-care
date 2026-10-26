@@ -58,18 +58,19 @@ The bottom bar always has a **108** button and the **Send ambulance** button. If
 
 **Tracking page**: after sending, the address becomes `#/report/CC-XXXXXXXX`.
 - A coloured banner says what is happening now: finding an ambulance (queued), ambulance on its way, crew with the patient, asking the hospital, hospital declined (finding another), hospital ready, on the way to hospital, arrived, handed over, cancelled.
-- Estimated minutes (straight-line estimate, labelled as such), a four-step progress list, the hospitals that declined and why, a map with patient, ambulance and hospital, a "call hospital" button once one is chosen, directions to the hospital, and the first-aid steps for that emergency.
+- Estimated minutes for the **current leg** (to the patient, then to the hospital), always labelled a rough straight-line estimate with no traffic data. With no live GPS, or a GPS fix older than 5 minutes, no number is shown: the page says why instead. A four-step progress list, the hospitals that declined and why, a map with patient, ambulance and hospital, a "call hospital" button once one is chosen, directions to the hospital, and the first-aid steps for that emergency.
 - It updates by itself over Socket.IO with a 15-second fallback poll.
 - **The page asks the person to stay on it and shows the report ID** (`CC-XXXXXXXX`) for future reference. The code is saved on the phone; refreshing the page or reopening the address finds the same request. Once a request is finished (handed over or cancelled) it is forgotten for next time, so the next visit opens a fresh form.
-- **Cancel request** is available until transport starts. **New request** starts a fresh form.
+- **Cancel request** is available until transport starts and always asks for confirmation first (it stops the request, releases the hospital bed and frees the ambulance). The page shows "cancelled" only after the server confirms. Once transport has started the button is replaced by an explanation and the advice to tell the crew or call 108. **New request** starts a fresh form.
 
 ### 2. Ambulance crew: `#/ambulance`
 
 - Sign in with the unit call sign (for example `mum-als-01`). The header shows the signed-in crew member's name with an initials badge, the call sign, unit type (ALS or BLS) and status.
-- **GPS switch**: shares the unit's position every 15 seconds so dispatch and the patient see it move. **Go off duty / Go on duty** when no call is active.
+- **GPS switch**: shares the unit's position every 15 seconds (re-sending the latest fix even while standing still) so dispatch and the patient see it move. A permission or network failure is shown on screen. **Go off duty / Go on duty** when no call is active.
 - **Waiting for a call** screen until dispatch assigns one; new calls appear automatically.
+- **Navigation card** (follows the stage of the call): **Navigate to Patient** until the crew taps *Arrived at patient*; once a hospital has accepted, **Navigate to Hospital** (also during transport); no button when there is nothing to navigate to (with the patient and no hospital yet, or at the hospital). The map shows the patient, the unit's last GPS position and the accepted hospital, with a dashed straight line to the current destination.
 - **Active call**: category picture, URGENT flag, triage colour, location, time since report, and one big button for the next step (Arrived at patient, Patient on board, Arrived at hospital, Patient handed over).
-- **Patient card**: name (if known), age group, sex, blood group, the reporter's injury photo, symptoms and pain level, conditions, **allergies (in red)**, tap-to-call buttons for the caller and family, and **Navigate to patient** (Google Maps). "Correct patient details" saves name, age and sex to the patient record.
+- **Patient card**: name (if known), age group, sex, blood group, the reporter's injury photo, symptoms and pain level, conditions, **allergies (in red)** and tap-to-call buttons for the caller and family. "Correct patient details" saves name, age and sex to the patient record.
 - **On-scene assessment**: conscious / breathing / pulse buttons, severe bleeding, pulse, SpO2, blood pressure, plus **questions specific to the emergency** that decide which hospital fits:
 
   | Emergency | Extra questions |
@@ -109,7 +110,7 @@ The bottom bar always has a **108** button and the **Send ambulance** button. If
   - a hospital has not answered for 4+ minutes (call them),
   - two or more hospitals declined (help the crew find a bed),
   - the assigned unit is more than 20 minutes away (is a closer one free?).
-- **Call detail**: caller and hospital phone buttons, ambulance and hospital status, patient, what the patient needs, symptoms, conditions, vitals, who declined and why, the reporter's photo and a map. **Assign / send a closer unit**: the four nearest free ambulances with distance. **Cancel call** with a reason (duplicate, prank, patient left).
+- **Call detail**: caller and hospital phone buttons, ambulance and hospital status, patient, what the patient needs, symptoms, conditions, vitals, who declined and why, the reporter's photo and a map. **Assign / send a closer unit**: the four nearest free ambulances with distance. **Cancel call** opens a dialog that requires a reason (duplicate report, prank call, patient left or was taken by other transport, or free text); the call leaves the board only after the server confirms, and the action is written to the audit log.
 - **Fleet table**: unit, zone, status, crew, how long ago its GPS was last seen (red when stale for over 10 minutes), and current call.
 - **Hospital pressure by zone**: hospitals, accepting, limited, diversion, ICU beds free.
 - **Audit log** (append-only) with **Export CSV**.
@@ -167,6 +168,17 @@ After pulling new code, **restart the backend** (`npm start` does not auto-reloa
 
 These are **development credentials**. Passwords are stored in the database only as bcrypt hashes. In production the seed skips the hospital CSV unless `SEED_ALLOW_DEMO_CREDENTIALS=true`; provision real accounts with strong, unique passwords and treat every account below as public.
 
+### Quick reference
+
+| Who | Page | Login ID | Password |
+| :--- | :--- | :--- | :--- |
+| Citizen (anyone) | `#/report` | none, no account needed | none |
+| Dispatcher (administrator) | `#/dispatch` | `admin@crisiscare.local` | `AdminDev2026pass` |
+| Ambulance crew (all 28 units) | `#/ambulance` | unit call sign in lower case, e.g. `mum-als-01` | `CrewDev2026pass` (same for every crew) |
+| Hospital emergency desk (all 105) | `#/hospital` | hospital ID, e.g. `kem_mumbai` | per hospital, e.g. `CareHosp@001` (full list below) |
+
+The full lists follow: the dispatcher, then every crew login, then every hospital login.
+
 ### Dispatch (administrator): `#/dispatch`
 
 | Email | Password |
@@ -194,6 +206,23 @@ All crews share the password **`CrewDev2026pass`** (`SEED_CREW_PASSWORD` in `bac
 | `pal-bls-11` | Kiran Vartha | PAL-BLS-11 (BLS) | Palghar & Vasai-Virar | Rural Hospital, Palghar |
 | `pal-bls-12` | Mahesh Dhodi | PAL-BLS-12 (BLS) | Palghar & Vasai-Virar | Sub-District Hospital, Dahanu |
 | `vsi-als-13` | Joseph D'Souza | VSI-ALS-13 (ALS) | Palghar & Vasai-Virar | D.M. Petit Hospital, Vasai |
+| `mum-als-14` | Meera Iyer | MUM-ALS-14 (ALS) | South Mumbai | St. George Hospital |
+| `mum-bls-15` | Arjun Naik | MUM-BLS-15 (BLS) | South Mumbai | H.N. Reliance Hospital |
+| `wst-als-16` | Pooja Bhatt | WST-ALS-16 (ALS) | Western Suburbs | V.N. Desai Hospital, Santacruz |
+| `wst-bls-17` | Salman Ansari | WST-BLS-17 (BLS) | Western Suburbs | HBT Trauma Hospital, Jogeshwari |
+| `wst-bls-18` | Dinesh Yadav | WST-BLS-18 (BLS) | Western Suburbs | Bhaktivedanta Hospital, Mira Road |
+| `cen-bls-19` | Rekha Gaikwad | CEN-BLS-19 (BLS) | Central Suburbs | Bhabha Hospital, Kurla |
+| `cen-als-20` | Tushar Kadam | CEN-ALS-20 (ALS) | Central Suburbs | M.T. Agarwal Hospital, Mulund |
+| `thn-bls-21` | Anita Shinde | THN-BLS-21 (BLS) | Thane & Kalyan | Highland Hospital, Thane |
+| `thn-als-22` | Faisal Qureshi | THN-ALS-22 (ALS) | Thane & Kalyan | Fortis Hospital, Kalyan |
+| `thn-bls-23` | Lata Chavan | THN-BLS-23 (BLS) | Thane & Kalyan | Central Hospital, Ulhasnagar. **Starts OFFLINE** |
+| `nvm-als-24` | Rahul Mhatre | NVM-ALS-24 (ALS) | Navi Mumbai & Panvel | NBC Hospital, Airoli |
+| `nvm-bls-25` | Sneha Jadhav | NVM-BLS-25 (BLS) | Navi Mumbai & Panvel | Terna Hospital, Nerul |
+| `nvm-bls-26` | Omkar Salvi | NVM-BLS-26 (BLS) | Navi Mumbai & Panvel | Sub-District Hospital, Panvel. **Starts in MAINTENANCE** |
+| `vsi-als-27` | Glen Fernandes | VSI-ALS-27 (ALS) | Palghar & Vasai-Virar | Cardinal Gracias Hospital, Vasai |
+| `pal-bls-28` | Bhavesh Raut | PAL-BLS-28 (BLS) | Palghar & Vasai-Virar | Rural Hospital, Kasa |
+
+Units 14 to 28 are **demo fixtures** added for dispatch demonstrations (invented crew names, real hospital coordinates used as base stations, registration numbers start with `DEV-`). They are not real emergency services and have no live position until a crew signs in with GPS on. The two units that start OFFLINE and in MAINTENANCE exist to show that only available units are ever dispatched. Re-running `npm run db:seed` never duplicates units or crews and never changes a unit's current status or position.
 
 ### Hospital emergency desks: `#/hospital`
 
@@ -378,8 +407,8 @@ Trauma, cath lab, stroke unit, burns, maternity, newborn ICU, paediatric emergen
 ### Patient records
 There is no account or sign-up. Each emergency has one patient record (`patients` table) filled from the reporter's optional taps and corrected by the crew on scene: name, age group (infant, child, teen, adult, senior), sex, blood group, known conditions, allergies, medications, and an emergency-contact name and phone. The reporter's own details, the injury photo, the symptoms and the crew's vitals and findings sit with the same emergency. Phone numbers are visible only to the assigned crew and dispatch.
 
-### Ambulances (13)
-Development fleet, one or two units per zone, stationed at real hospital coordinates (see the crew table). Crew positions update from the crew's phone GPS.
+### Ambulances (28)
+Development fleet, units 1 to 13 plus 15 demo units, stationed at real hospital coordinates (see the crew table). Crew positions update from the crew's phone GPS; until a crew shares GPS, a unit shows its base station and is marked "last known".
 
 ---
 
@@ -516,6 +545,7 @@ crisis-care/
 | `SEED_CREW_PASSWORD` | Password for every seeded ambulance crew (at least 10 characters) |
 | `SEED_ALLOW_DEMO_CREDENTIALS` | In production, set `true` to load the hospital CSV logins |
 | `DISPATCH_RADIUS_KM`, `HOSPITAL_SEARCH_RADIUS_KM`, `AVG_SPEED_KMH`, `EMERGENCY_RATE_LIMIT` | Optional tuning, defaults 60 / 80 / 30 / 15 |
+| `GPS_STALE_MINUTES` | A unit whose last GPS fix is older than this is "stale": shown as last known, and no arrival time is computed from it. Default 5 |
 
 The server refuses to start if `JWT_SECRET` or `DATABASE_URL` is missing. **Never commit `.env`** (it is git-ignored).
 
@@ -545,7 +575,8 @@ Frontend: `VITE_BACKEND_URL` (dev proxy target) and `VITE_API_URL` (for a separa
 - **Hospital stock is synthetic until a hospital confirms it.** The hospitals and their addresses are real; seeded inventory and service profiles are generated. Screens label figures *sample* until hospital staff edit them, then show when they were confirmed.
 - **25 hospitals were added by hand** (South Mumbai, suburbs, Mira-Bhayandar, Panvel, Palghar district). Their map pins are approximate (`coord_quality = approximate_manual`, `verify_pin = true`) and most have no phone number. Verify before real use.
 - **No integration with hospital systems.** Stock is what each hospital's staff type in.
-- **Travel times are estimates**: straight-line distance divided by `AVG_SPEED_KMH`. There is no road routing or traffic data; map lines are straight.
+- **Travel times are estimates**: straight-line distance divided by `AVG_SPEED_KMH`, labelled as such everywhere. There is no road routing or traffic data (the "Navigate" buttons open Google Maps, which does its own routing); map lines are straight. No arrival time is shown when the unit has no live GPS, an unusable position, or a fix older than `GPS_STALE_MINUTES`.
+- **Unit positions are only as live as the crew's phone GPS.** There is no GPS simulator; seeded units sit at their base station until a crew shares a position.
 - **No address geocoding.** Location comes from GPS or the nearest-area buttons; the landmark text is informational.
 - **Anonymous reporting** (no phone verification) keeps help from being blocked but allows prank calls. Rate limiting is the only mitigation; dispatch can cancel a call with a reason.
 - **Matching rules are a decision aid** based on general emergency-care principles, not clinical advice. The crew and hospital decide.

@@ -38,6 +38,9 @@ export const config = {
   dispatchRadiusKm: Number(process.env.DISPATCH_RADIUS_KM) || 60,
   hospitalSearchRadiusKm: Number(process.env.HOSPITAL_SEARCH_RADIUS_KM) || 80,
   avgSpeedKmh: Number(process.env.AVG_SPEED_KMH) || 30,
+  // A unit whose last GPS fix is older than this is "stale": its position is shown as
+  // last-known and no arrival time is computed from it.
+  gpsStaleSeconds: (Number(process.env.GPS_STALE_MINUTES) || 5) * 60,
 
   // Rate limits
   emergencyRateLimit: Number(process.env.EMERGENCY_RATE_LIMIT) || 15

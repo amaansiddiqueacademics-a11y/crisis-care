@@ -381,7 +381,9 @@ export const listRequests = async (hospitalId) => {
     WHERE r.hospital_id = $1
       AND (
         (r.status IN ('PENDING', 'ACCEPTED') AND e.status NOT IN ('CLOSED', 'CANCELLED'))
-        OR r.created_at > NOW() - INTERVAL '24 hours'
+        -- history; a question that was never answered before the call ended is not history
+        OR (r.created_at > NOW() - INTERVAL '24 hours'
+            AND (r.status <> 'PENDING' OR e.status NOT IN ('CLOSED', 'CANCELLED')))
       )
     ORDER BY (r.status = 'PENDING') DESC, r.created_at DESC
     LIMIT 20

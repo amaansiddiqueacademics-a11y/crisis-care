@@ -128,6 +128,7 @@ router.post(
   c.reportEmergency
 );
 router.get("/emergencies/:code", param("code").matches(CODE_PATTERN), validate, c.trackEmergency);
+router.get("/emergencies/:code/nearby-ambulances", param("code").matches(CODE_PATTERN), validate, c.nearbyUnits);
 router.post(
   "/emergencies/:code/cancel",
   param("code").matches(CODE_PATTERN),

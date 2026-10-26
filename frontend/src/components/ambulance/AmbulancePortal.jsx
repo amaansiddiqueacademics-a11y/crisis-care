@@ -9,6 +9,7 @@ import { findCategory } from '../../data/emergencyCategories';
 import { directionsUrl, tel } from '../../data/helplines';
 import { CategoryImage } from '../common/FirstAidSteps';
 import { MapView } from '../common/MapView';
+import { etaShort, gpsText, routeLine, trackingMarkers } from '../common/tracking';
 import { Avatar, ErStatusBadge, ErrorNote, Field, OwnershipBadge, Pill, TriageBadge, timeAgo } from '../common/ui';
 
 // Extra questions that matter for the hospital choice, per reported category.
@@ -106,32 +107,53 @@ const Login = () => {
           <div className="relative"><KeyRound className="w-4 h-4 text-stone-400 absolute left-3 top-3.5" /><input id="crew-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="cc-input pl-9" autoComplete="current-password" required /></div>
         </div>
         <button type="submit" disabled={busy} className="cc-btn-dark w-full !py-3">{busy ? 'Signing in…' : 'Sign in'}</button>
-        <p className="text-xs text-stone-400 text-center flex items-center justify-center gap-1"><ShieldCheck className="w-3.5 h-3.5" /> Development units: mum-als-01 … vsi-als-13, password = SEED_CREW_PASSWORD in backend/.env</p>
+        <p className="text-xs text-stone-400 text-center flex items-center justify-center gap-1"><ShieldCheck className="w-3.5 h-3.5" /> Development units: mum-als-01 … pal-bls-28, password = SEED_CREW_PASSWORD in backend/.env</p>
       </form>
     </div>
   );
 };
 
-/** Shares the unit's GPS every 15 s while the switch is on, so dispatch and the patient see it move. */
+/**
+ * Shares the unit's GPS while the switch is on. The newest fix is re-sent every 15 s even if the
+ * unit is standing still (the browser only reports changes), so dispatch and the patient can tell
+ * "stopped" from "no signal". Failures are shown to the crew instead of being swallowed.
+ */
 const useGpsShare = (authed, enabled) => {
-  const [last, setLast] = useState(null);
-  const lastSent = useRef(0);
+  const [status, setStatus] = useState({ sentAt: null, error: null });
   useEffect(() => {
-    if (!enabled || !navigator.geolocation) return undefined;
-    const id = navigator.geolocation.watchPosition(
+    if (!enabled) return undefined;
+    if (!navigator.geolocation) {
+      setStatus({ sentAt: null, error: 'This device has no GPS.' });
+      return undefined;
+    }
+    let active = true;
+    let fix = null;
+    const send = async () => {
+      if (!fix) return;
+      try {
+        await authed('ambulance', '/ambulance/location', { method: 'PUT', body: fix });
+        if (active) setStatus({ sentAt: new Date(), error: null });
+      } catch (err) {
+        if (active) setStatus((s) => ({ ...s, error: `Location not sent: ${err.message}` }));
+      }
+    };
+    const watchId = navigator.geolocation.watchPosition(
       ({ coords }) => {
-        if (Date.now() - lastSent.current < 15000) return;
-        lastSent.current = Date.now();
-        authed('ambulance', '/ambulance/location', { method: 'PUT', body: { lat: coords.latitude, lng: coords.longitude } })
-          .then(() => setLast(new Date()))
-          .catch(() => {});
+        const first = !fix;
+        fix = { lat: coords.latitude, lng: coords.longitude };
+        if (first) send();
       },
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 10000 },
+      (err) => setStatus((s) => ({ ...s, error: err.code === 1 ? 'Location permission denied: allow location access for this site.' : 'Waiting for a GPS fix…' })),
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 },
     );
-    return () => navigator.geolocation.clearWatch(id);
+    const timer = setInterval(send, 15000);
+    return () => {
+      active = false;
+      navigator.geolocation.clearWatch(watchId);
+      clearInterval(timer);
+    };
   }, [authed, enabled]);
-  return last;
+  return status;
 };
 
 const Assessment = ({ emergency, onSaved }) => {
@@ -268,7 +290,6 @@ const PatientCard = ({ e, onSaved }) => {
       <div className="flex flex-wrap gap-2">
         {e.callerPhone && <a href={tel(e.callerPhone)} className="cc-btn-outline !py-2"><PhoneCall className="w-4 h-4" /> Caller {e.callerPhone}</a>}
         {p.emergencyContactPhone && <a href={tel(p.emergencyContactPhone)} className="cc-btn-outline !py-2"><PhoneCall className="w-4 h-4" /> Family {p.emergencyContactPhone}</a>}
-        <a href={directionsUrl(e.lat, e.lng)} target="_blank" rel="noreferrer" className="cc-btn-primary !py-2"><Navigation className="w-4 h-4" /> Navigate to patient</a>
       </div>
 
       <details className="rounded-xl border border-stone-200 p-3">
@@ -280,6 +301,34 @@ const PatientCard = ({ e, onSaved }) => {
           <button type="button" onClick={save} className="cc-btn-dark !py-2">Save to patient record</button>
         </div>
       </details>
+    </div>
+  );
+};
+
+/**
+ * One navigation button whose destination follows the stage of the call (decided by the server):
+ * the patient on the way there, the accepted hospital once the patient is with us or on board.
+ */
+const NavigationCard = ({ e }) => {
+  const nav = e.navigation;
+  const dest = nav?.destination;
+  const a = e.ambulance;
+  const where = !dest ? null : dest.kind === 'PATIENT' ? `Patient · ${e.locationText || 'pinned location'}` : dest.name;
+  return (
+    <div className={`cc-card p-4 flex flex-wrap items-center gap-4 ${dest ? 'border-amber-300' : ''}`}>
+      <Navigation className="w-7 h-7 text-amber-600 shrink-0" />
+      <div className="flex-1 min-w-[200px]">
+        <p className="cc-label !mb-0">{dest ? 'Current destination' : 'Navigation'}</p>
+        <p className="text-lg font-black leading-tight">{where || 'No destination right now'}</p>
+        <p className="text-xs text-stone-500 mt-0.5">
+          {dest ? `${etaShort(a)} · ${gpsText(a)}` : nav?.note}
+        </p>
+      </div>
+      {dest && (
+        <a href={directionsUrl(dest.lat, dest.lng)} target="_blank" rel="noreferrer" className="cc-btn-primary !py-3">
+          <Navigation className="w-4 h-4" /> {nav.label}
+        </a>
+      )}
     </div>
   );
 };
@@ -363,16 +412,29 @@ const STAGES = [
 export const AmbulancePortal = () => {
   const { sessions, authed, logout, showToast } = useCrisisCare();
   const session = sessions.ambulance;
-  const [gpsOn, setGpsOn] = useState(true);
+  // Off until the crew asks for it: sharing moves the unit to wherever THIS device is.
+  const [gpsOn, setGpsOn] = useState(false);
   const { data, error, refresh } = useLive(() => authed('ambulance', '/ambulance/me'), {
     token: session?.token, events: ['emergency:changed'], pollMs: 15000, enabled: Boolean(session),
   });
-  const lastGps = useGpsShare(authed, Boolean(session) && gpsOn);
-
-  if (!session) return <Login />;
+  const gps = useGpsShare(authed, Boolean(session) && gpsOn);
 
   const a = data?.ambulance;
   const e = data?.emergency;
+
+  // The call disappearing before hand-over means it was cancelled: say so instead of silently emptying the screen.
+  const lastCall = useRef(null);
+  useEffect(() => {
+    if (e) {
+      lastCall.current = { code: e.code, status: e.status };
+    } else if (lastCall.current) {
+      const { code, status } = lastCall.current;
+      lastCall.current = null;
+      if (status !== 'ARRIVED') showToast('Call ended', `${code} was cancelled. Stand by: you are free for the next call.`, 'warning');
+    }
+  }, [e, showToast]);
+
+  if (!session) return <Login />;
 
   const stage = async (step) => {
     try {
@@ -405,8 +467,8 @@ export const AmbulancePortal = () => {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button onClick={() => setGpsOn(!gpsOn)} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold ${gpsOn ? 'bg-emerald-600' : 'bg-white/10'}`}>
-            <LocateFixed className="w-4 h-4" /> GPS {gpsOn ? `on${lastGps ? ` · sent ${lastGps.toLocaleTimeString()}` : ''}` : 'off'}
+          <button onClick={() => setGpsOn(!gpsOn)} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold ${gpsOn ? 'bg-emerald-600' : 'bg-amber-500 text-stone-950'}`}>
+            <LocateFixed className="w-4 h-4" /> {gpsOn ? `Sharing my location${gps.sentAt ? ` · sent ${gps.sentAt.toLocaleTimeString()}` : ' · waiting for a fix'} (tap to stop)` : 'Use my location'}
           </button>
           {!e && a && (
             <button onClick={() => setAvailability(a.status === 'OFFLINE' ? 'AVAILABLE' : 'OFFLINE')} className="rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2 text-sm font-semibold">
@@ -418,6 +480,12 @@ export const AmbulancePortal = () => {
       </div>
 
       <ErrorNote error={error} />
+      {!gpsOn && (
+        <div className="cc-card p-3 text-sm text-stone-600" role="note">
+          <strong>Location sharing is off.</strong> This unit shows at its base station{a?.lastLocationUpdate ? ' (or its last shared position)' : ''}. Tap <strong>Use my location</strong> only on the phone in the vehicle: it moves the unit to where this device is, and the patient and dispatch will see that position.
+        </div>
+      )}
+      {gpsOn && gps.error && <div className="cc-card border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="alert">{gps.error} Dispatch and the patient cannot see this unit move until it is fixed.</div>}
 
       {!e ? (
         <div className="cc-card p-10 text-center space-y-2">
@@ -448,6 +516,8 @@ export const AmbulancePortal = () => {
             )}
           </div>
 
+          <NavigationCard e={e} />
+
           <div className="grid lg:grid-cols-12 gap-6 items-start">
             <div className="lg:col-span-5 space-y-6">
               <PatientCard e={e} onSaved={refresh} />
@@ -459,20 +529,13 @@ export const AmbulancePortal = () => {
                   <Building2 className="w-6 h-6 text-amber-600" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-black">{e.hospital.response === 'accepted' ? 'Accepted: ' : e.hospital.response === 'declined' ? 'Declined: ' : 'Waiting for: '}{e.hospital.name}</p>
-                    <p className="text-xs text-stone-500">{e.hospital.response === 'declined' ? e.hospital.declineReason : `${e.hospital.distanceKm} km from patient · ~${e.hospital.etaMinutes} min`}</p>
+                    <p className="text-xs text-stone-500">{e.hospital.response === 'declined' ? e.hospital.declineReason : `${e.hospital.distanceKm} km from patient · ~${e.hospital.etaMinutes} min (estimate)`}</p>
                   </div>
                   {e.hospital.phone && <a href={tel(e.hospital.phone)} className="cc-btn-outline !py-2"><PhoneCall className="w-4 h-4" /> Call ER</a>}
-                  <a href={directionsUrl(e.hospital.lat, e.hospital.lng)} target="_blank" rel="noreferrer" className="cc-btn-primary !py-2"><Navigation className="w-4 h-4" /> Navigate</a>
                 </div>
               )}
-              <MapView
-                height="320px"
-                markers={[
-                  { id: 'p', kind: 'patient', lat: e.lat, lng: e.lng, popup: 'Patient' },
-                  a?.lat != null && { id: 'a', kind: 'ambulance', lat: a.lat, lng: a.lng, label: a.callsign },
-                  e.hospital && { id: 'h', kind: 'hospital', lat: e.hospital.lat, lng: e.hospital.lng, label: e.hospital.name },
-                ].filter(Boolean)}
-              />
+              <MapView height="320px" markers={trackingMarkers(e)} route={routeLine(e)} />
+              <p className="text-xs text-stone-500 -mt-4 px-1">Dashed line: straight line to the current destination, not the road route.</p>
               <HospitalChoice e={e} onChanged={refresh} />
             </div>
           </div>
