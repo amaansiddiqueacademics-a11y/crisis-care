@@ -128,10 +128,11 @@ async function main() {
     locationText: "Dahanu · Gholvad road, farm", problemKind: "outside", bodyArea: "Foot", reporterRelation: "FAMILY"
   });
 
-  // 6. Breathing difficulty at Nashik: out of range of every unit, so it waits in the queue.
-  await report({
-    type: "Breathing Difficulty", lat: 19.9975, lng: 73.7898, callerPhone: "9890033221",
-    locationText: "Nashik Road · near the bus stand", symptoms: ["Hard to breathe"], problemKind: "inside", reporterRelation: "SELF"
+  // 6. Breathing difficulty at Mokhada (remote Palghar): the nearest free unit is far away, so dispatch
+  //    flags the call ("unit more than 20 minutes away").
+  const remote = await report({
+    type: "Breathing Difficulty", lat: 19.932, lng: 73.337, callerPhone: "9890033221",
+    locationText: "Mokhada · near the ST bus stand", symptoms: ["Hard to breathe"], problemKind: "inside", reporterRelation: "SELF"
   });
 
   // Move one en-route unit slightly so GPS positions differ from the base stations.
@@ -141,7 +142,9 @@ async function main() {
   console.log(`  Chest pain at Parel: unit ${heart.ambulance.callsign}, asked ${heartHospital.name} (sign in as that hospital to accept)`);
   console.log(`  Labour at Thane: accepted by ${labourHospital.name}, ambulance transporting`);
   console.log("  Road accident (Kurla), stroke (Andheri), snakebite (Dahanu): ambulance dispatched");
-  console.log("  Breathing difficulty (Nashik): waiting, no unit in range");
+  console.log(
+    `  Breathing difficulty (Mokhada): ${remote.ambulance ? `unit ${remote.ambulance.callsign}, far away (dispatch flags it)` : "waiting, no unit free"}`
+  );
 }
 
 try {

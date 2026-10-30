@@ -125,13 +125,7 @@ function getProfileName(hospital) {
     return "tier_A_urban";
   }
 
-  if (
-    hospital.suggested_tier === "B" &&
-    (
-      hospital.region_type === "urban_dense" ||
-      hospital.region_type === "urban_mid"
-    )
-  ) {
+  if (hospital.suggested_tier === "B" && hospital.region_type === "urban_dense") {
     return "tier_B_urban";
   }
 

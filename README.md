@@ -175,7 +175,7 @@ These are **development credentials**. Passwords are stored in the database only
 | Citizen (anyone) | `#/report` | none, no account needed | none |
 | Dispatcher (administrator) | `#/dispatch` | `admin@crisiscare.local` | `AdminDev2026pass` |
 | Ambulance crew (all 28 units) | `#/ambulance` | unit call sign in lower case, e.g. `mum-als-01` | `CrewDev2026pass` (same for every crew) |
-| Hospital emergency desk (all 105) | `#/hospital` | hospital ID, e.g. `kem_mumbai` | per hospital, e.g. `CareHosp@001` (full list below) |
+| Hospital emergency desk (all 62) | `#/hospital` | hospital ID, e.g. `kem_mumbai` | per hospital, e.g. `CareHosp@001` (full list below) |
 
 The full lists follow: the dispatcher, then every crew login, then every hospital login.
 
@@ -226,7 +226,7 @@ Units 14 to 28 are **demo fixtures** added for dispatch demonstrations (invented
 
 ### Hospital emergency desks: `#/hospital`
 
-Each hospital has its own **hospital ID** (equal to its `seed_key`) and password. The same list is in `backend/data/hospital_admin_credentials.csv`.
+Each hospital has its own **hospital ID** (equal to its `seed_key`) and password. The same list is in `backend/data/hospital_admin_credentials.csv`. Numbers have gaps because hospitals outside the Mumbai region were removed; the remaining passwords are unchanged.
 
 | # | Hospital | Hospital ID | Password | Zone |
 | ---: | :--- | :--- | :--- | :--- |
@@ -253,43 +253,6 @@ Each hospital has its own **hospital ID** (equal to its `seed_key`) and password
 | 21 | SevenHills Hospital (Reliance Foundation), Marol | `sevenhills_mumbai` | `CareHosp@021` | Central Suburbs |
 | 22 | Dr. L.H. Hiranandani Hospital, Powai | `hiranandani_mumbai` | `CareHosp@022` | Central Suburbs |
 | 23 | Shri Harilal Bhagwati Municipal Hospital, Borivali | `bhagwati_mumbai` | `CareHosp@023` | Western Suburbs |
-| 24 | Sassoon General Hospital | `sassoon_pune` | `CareHosp@024` | Pune |
-| 25 | Ruby Hall Clinic, Sassoon Road | `rubyhall_pune` | `CareHosp@025` | Pune |
-| 26 | Jehangir Hospital | `jehangir_pune` | `CareHosp@026` | Pune |
-| 27 | Deenanath Mangeshkar Hospital and Research Center | `dmh_pune` | `CareHosp@027` | Pune |
-| 28 | KEM Hospital, Rasta Peth | `kem_pune` | `CareHosp@028` | Pune |
-| 29 | Aditya Birla Memorial Hospital, Chinchwad | `abmh_pune` | `CareHosp@029` | Pimpri-Chinchwad |
-| 30 | Sahyadri Super Speciality Hospital, Deccan Gymkhana | `sahyadri_pune` | `CareHosp@030` | Pune |
-| 31 | Poona Hospital and Research Centre | `poona_pune` | `CareHosp@031` | Pune |
-| 32 | Noble Hospitals and Research Centre, Hadapsar | `noble_pune` | `CareHosp@032` | Pune |
-| 33 | PCMC Yashwantrao Chavan Memorial Hospital, Pimpri | `ycm_pune` | `CareHosp@033` | Pimpri-Chinchwad |
-| 34 | Inamdar Multispeciality Hospital | `inamdar_pune` | `CareHosp@034` | Pune |
-| 35 | Bharati Hospital, Dhankawadi | `bharati_pune` | `CareHosp@035` | Pune |
-| 36 | Jupiter Hospital, Baner | `jupiter_pune` | `CareHosp@036` | Pune |
-| 37 | Manipal Hospital, Kharadi | `manipal_kharadi_pune` | `CareHosp@037` | Pune |
-| 38 | Government Medical College and Hospital (GMCH), Nagpur | `gmch_nagpur` | `CareHosp@038` | Nagpur |
-| 39 | Indira Gandhi Government Medical College and Hospital (Mayo), Nagpur | `mayo_nagpur` | `CareHosp@039` | Nagpur |
-| 40 | AIIMS Nagpur | `aiims_nagpur` | `CareHosp@040` | Nagpur |
-| 41 | Orange City Hospital and Research Institute | `orangecity_nagpur` | `CareHosp@041` | Nagpur |
-| 42 | Wockhardt Super Specialty Hospital, Nagpur | `wockhardt_nagpur` | `CareHosp@042` | Nagpur |
-| 43 | KIMS-Kingsway Hospitals | `kims_nagpur` | `CareHosp@043` | Nagpur |
-| 44 | Alexis Multispeciality Hospital | `alexis_nagpur` | `CareHosp@044` | Nagpur |
-| 45 | CARE Hospitals, Nagpur | `care_nagpur` | `CareHosp@045` | Nagpur |
-| 46 | Lata Mangeshkar Hospital, Digdoh | `lata_nagpur` | `CareHosp@046` | Nagpur |
-| 47 | Government Medical College and Hospital (Ghati), Chhatrapati Sambhajinagar | `gmch_sambhajinagar` | `CareHosp@047` | Chhatrapati Sambhajinagar (Aurangabad) |
-| 48 | MGM Medical College and Hospital, CIDCO | `mgm_sambhajinagar` | `CareHosp@048` | Chhatrapati Sambhajinagar (Aurangabad) |
-| 49 | Kamalnayan Bajaj Hospital | `kamalnayan_sambhajinagar` | `CareHosp@049` | Chhatrapati Sambhajinagar (Aurangabad) |
-| 50 | Seth Nandlal Dhoot Hospital and Research Foundation | `dhoot_sambhajinagar` | `CareHosp@050` | Chhatrapati Sambhajinagar (Aurangabad) |
-| 51 | CARE United CIIGMA Hospitals | `ciigma_sambhajinagar` | `CareHosp@051` | Chhatrapati Sambhajinagar (Aurangabad) |
-| 52 | Dr. Hedgewar Rugnalaya | `hedgewar_sambhajinagar` | `CareHosp@052` | Chhatrapati Sambhajinagar (Aurangabad) |
-| 53 | District General Hospital, Nandurbar | `dgh_nandurbar` | `CareHosp@053` | Nandurbar |
-| 54 | Sub District Hospital, Taloda | `sdh_taloda` | `CareHosp@054` | Taloda |
-| 55 | Rural Hospital, Akkalkuwa | `rh_akkalkuwa` | `CareHosp@055` | Akkalkuwa |
-| 56 | Rural Hospital, Shahada | `rh_shahada` | `CareHosp@056` | Shahada |
-| 57 | General (District) Hospital, Gadchiroli | `gh_gadchiroli` | `CareHosp@057` | Gadchiroli |
-| 58 | Sub District Hospital, Aheri | `sdh_aheri` | `CareHosp@058` | Aheri |
-| 59 | Sub District Hospital, Armori | `sdh_armori` | `CareHosp@059` | Armori |
-| 60 | SEARCH Hospital, Shodhgram | `search_shodhgram` | `CareHosp@060` | Shodhgram |
 | 61 | Jupiter Hospital, Thane | `jupiter_thane` | `CareHosp@061` | Thane & Kalyan |
 | 62 | Bethany Hospital | `bethany_thane` | `CareHosp@062` | Thane & Kalyan |
 | 63 | Kaushalya Medical Foundation Trust Hospital | `kaushalya_thane` | `CareHosp@063` | Thane & Kalyan |
@@ -299,12 +262,6 @@ Each hospital has its own **hospital ID** (equal to its `seed_key`) and password
 | 67 | Dr. D.Y. Patil Hospital, Nerul | `dypatil_nerul` | `CareHosp@067` | Navi Mumbai & Panvel |
 | 68 | NMMC General Hospital, Vashi | `nmmc_vashi` | `CareHosp@068` | Navi Mumbai & Panvel |
 | 69 | MGM New Bombay Hospital, Vashi | `mgm_vashi` | `CareHosp@069` | Navi Mumbai & Panvel |
-| 70 | Lokmanya Hospital, Chinchwad | `lokmanya_chinchwad` | `CareHosp@070` | Pimpri-Chinchwad |
-| 71 | Dr. D.Y. Patil Hospital and Research Centre, Pimpri | `dypatil_pimpri` | `CareHosp@071` | Pimpri-Chinchwad |
-| 72 | Civil Hospital, Nashik | `civil_nashik` | `CareHosp@072` | Nashik |
-| 73 | Ashoka Medicover Hospital, Nashik | `medicover_nashik` | `CareHosp@073` | Nashik |
-| 74 | Apollo Hospitals, Nashik | `apollo_nashik` | `CareHosp@074` | Nashik |
-| 75 | Dr. Vasantrao Pawar Medical College, Hospital and Research Center | `vpmc_nashik` | `CareHosp@075` | Nashik |
 | 76 | Bai Rukminibai Hospital (KDMC), Kalyan | `rukminibai_kalyan` | `CareHosp@076` | Thane & Kalyan |
 | 77 | KDMC General Hospital, Shastri Nagar, Dombivli | `shastrinagar_dombivli` | `CareHosp@077` | Thane & Kalyan |
 | 78 | ICON Hospital, Dombivli | `icon_dombivli` | `CareHosp@078` | Thane & Kalyan |
@@ -349,13 +306,13 @@ Run `npm run db:demo` in `backend` (re-run with `-- --reset` to cancel the open 
 | Road accident, 2 patients | Kurla | Ambulance dispatched |
 | Suspected stroke | Andheri | Ambulance dispatched |
 | Snake bite | Dahanu | Ambulance dispatched |
-| Breathing difficulty | Nashik | **Waiting**: no ambulance within range (shows the "no unit free" alert) |
+| Breathing difficulty | Mokhada (remote Palghar) | Nearest free unit is far away, so dispatch flags it ("unit more than 20 minutes away") |
 
 Suggested order:
 1. **Home**: show the helplines, live figures and the hospital finder (pick "Chest pain" then "South Mumbai", then "Snake or animal bite" to see the ranking change).
 2. **Ambulance**: sign in as `mum-als-01` / `CrewDev2026pass`. Asha sees the Parel patient, the injury, allergies, red triage with reasons, and the ranked hospitals.
 3. **Hospital**: in another window sign in as `gleneagles_mumbai` / its password from the table. The same patient arrives; check the "Can you treat this patient?" panel, then **Accept**. Mark the ER *Limited* or *Full* to show the effect on ranking.
-4. **Dispatch**: sign in as the administrator. Show the map, the queue flags, the Nashik call waiting, then assign a unit and cancel a duplicate.
+4. **Dispatch**: sign in as the administrator. Show the map, the queue flags (the Mokhada call has a distant unit), then assign a unit and cancel a duplicate.
 5. **Report**: as a citizen, send a new report from `#/report` and watch the tracking page update live as the crew and hospital act.
 
 ---
@@ -383,7 +340,7 @@ Rules live in `backend/src/services/matching.js` and `emergencyService.js`. They
 
 ## Data
 
-### Hospitals (105)
+### Hospitals (62)
 `backend/data/crisis_care_hospitals.json`: real hospital names and addresses with coordinates, each with a **zone**, **ownership** (public or private) and a **service profile**.
 
 | Zone | Hospitals |
@@ -394,7 +351,6 @@ Rules live in `backend/src/services/matching.js` and `emergencyService.js`. They
 | Thane & Kalyan | 10 (Jupiter, Bethany, Kaushalya, CSM Kalwa, Highland, Rukminibai Kalyan, Fortis Kalyan, two in Dombivli, Ulhasnagar) |
 | Navi Mumbai & Panvel | 9 (Apollo Belapur, Fortis Vashi, D.Y. Patil Nerul, NMMC Vashi, MGM Vashi, National Burns Centre Airoli, Terna Nerul, MGM Kamothe, Panvel Sub-District) |
 | Palghar & Vasai-Virar | 7 (D.M. Petit Vasai, Cardinal Gracias Vasai, Wellcare Virar, Rural Hospital Palghar, Sub-District Dahanu, Rural Hospital Kasa, Patangshah Jawhar) |
-| Other Maharashtra | Pune, Pimpri-Chinchwad, Nagpur, Chhatrapati Sambhajinagar, Nashik, Nandurbar and Gadchiroli districts |
 
 Public (government and municipal) hospitals are marked **Govt** and offer free or low-cost treatment.
 
@@ -504,7 +460,7 @@ crisis-care/
 ├── backend/
 │   ├── .env.example              # copy to .env
 │   ├── data/
-│   │   ├── crisis_care_hospitals.json         # 105 hospitals (zone, ownership, services)
+│   │   ├── crisis_care_hospitals.json         # 62 hospitals (zone, ownership, services)
 │   │   ├── inventory_profiles.json            # synthetic stock profiles
 │   │   └── hospital_admin_credentials.csv     # DEVELOPMENT-ONLY hospital logins
 │   ├── database/schema.sql

@@ -187,5 +187,5 @@
       ]
     }
   },
-  "assignment": "suggested_tier=A -> tier_A_urban; suggested_tier=B and region_type in (urban_dense, urban_mid) -> tier_B_urban; region_type=rural_sparse -> tier_B_rural"
+  "assignment": "suggested_tier=A -> tier_A_urban; suggested_tier=B and region_type=urban_dense -> tier_B_urban; region_type=rural_sparse -> tier_B_rural"
 }

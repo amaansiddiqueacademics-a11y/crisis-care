@@ -178,7 +178,7 @@ const PHOTOS = [
 
 const HospitalGallery = () => (
   <section aria-labelledby="gallery-title">
-    <SectionTitle id="gallery-title" title="Real hospitals across Mumbai and Palghar" text="105 hospitals in South Mumbai, the Western and Central suburbs, Thane, Navi Mumbai and Palghar, plus other Maharashtra cities. Photographs are for illustration and do not imply a partnership." />
+    <SectionTitle id="gallery-title" title="Real hospitals across Mumbai and Palghar" text="62 hospitals in South Mumbai, the Western and Central suburbs, Thane, Navi Mumbai and Palghar. Photographs are for illustration and do not imply a partnership." />
     <div className="grid md:grid-cols-3 gap-4">
       {PHOTOS.map((p) => (
         <figure key={p.src} className="cc-card overflow-hidden">
