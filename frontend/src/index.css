@@ -5,8 +5,8 @@
 
 @layer base {
   body {
-    background-color: #F7FAFC;
-    color: #17212B;
+    background-color: #FAFAF9;
+    color: #1C1917;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -29,14 +29,7 @@ select option {
   font-weight: 600 !important;
 }
 
-/* For explicit dark inputs */
-input.dark-input, select.dark-input, textarea.dark-input {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-  background-color: #181922 !important;
-}
-
-input.dark-input::placeholder, textarea.dark-input::placeholder {
+::placeholder {
   color: #94a3b8 !important;
   -webkit-text-fill-color: #94a3b8 !important;
 }
@@ -47,33 +40,13 @@ input.dark-input::placeholder, textarea.dark-input::placeholder {
   -webkit-text-fill-color: #64748b !important;
 }
 
-/* Custom Leaflet Map styling to fit Crisis Care Teal/Emergency aesthetic */
+/* Leaflet maps fill their container */
 .leaflet-container {
   width: 100%;
   height: 100%;
   border-radius: 0.75rem;
   z-index: 10;
   font-family: inherit;
-}
-
-.custom-pulse-marker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pulse-ring {
-  position: absolute;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: rgba(211, 47, 47, 0.4);
-  animation: pulseMarker 1.8s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-@keyframes pulseMarker {
-  0% { transform: scale(0.6); opacity: 1; }
-  100% { transform: scale(2.2); opacity: 0; }
 }
 
 /* Custom scrollbar */

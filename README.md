@@ -126,8 +126,8 @@ The bottom bar always has a **108** button and the **Send ambulance** button. If
 ### 1. Database
 ```bash
 cd crisis-care
-docker compose up -d            # PostGIS on localhost:5432
-# port 5432 already used?  DB_PORT=5433 docker compose up -d
+docker compose up -d            # PostGIS on localhost:5433
+# port 5433 already used?  DB_PORT=5434 docker compose up -d  (then use 5434 in DATABASE_URL)
 ```
 Without Docker, create a database (`CREATE DATABASE crisis_care;`) on a server with PostGIS installed. The schema runs `CREATE EXTENSION postgis`, so the user needs permission to do so.
 
@@ -139,7 +139,7 @@ cp .env.example .env            # PowerShell: Copy-Item .env.example .env
 Edit `.env` (see [Configuration](#configuration)). Suggested development values so this README's logins work:
 
 ```
-DATABASE_URL=postgresql://crisis:crisis_dev_password@localhost:5432/crisis_care
+DATABASE_URL=postgresql://crisis:crisis_dev_password@localhost:5433/crisis_care
 JWT_SECRET=<a long random string>
 SEED_ADMIN_EMAIL=admin@crisiscare.local
 SEED_ADMIN_PASSWORD=AdminDev2026pass
@@ -589,5 +589,5 @@ Frontend: `VITE_BACKEND_URL` (dev proxy target) and `VITE_API_URL` (for a separa
 
 - Hospital photos: Lilavati Hospital, Bandra (Nichalp), P.D. Hinduja Hospital (Dpb696, Jkl0101), via Wikimedia Commons, CC BY-SA. Ambulance photo: Satyam Shukla 28, Wikimedia Commons, CC0.
 - Map data: OpenStreetMap contributors.
-- Icons: lucide-react. Colour palette follows the NHS identity colours.
+- Icons: lucide-react.
 - The citizen report uses tap-to-answer questions instead of free text so a reporter never has to type under stress. The only typed fields are credentials, an optional phone number, an optional landmark, search boxes, numeric vitals and stock counts, and the surgeon's name.

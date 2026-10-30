@@ -8,7 +8,8 @@ services:
       POSTGRES_PASSWORD: crisis_dev_password
       POSTGRES_DB: crisis_care
     ports:
-      - "5433:5432"
+      # Host port 5433 so it does not clash with a local PostgreSQL on 5432 (override with DB_PORT).
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - crisis_care_pgdata:/var/lib/postgresql/data
     healthcheck:
