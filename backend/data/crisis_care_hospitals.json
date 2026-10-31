@@ -154,7 +154,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "Four Bungalows, Andheri West, Mumbai 400053",
-    "phone": "",
+    "phone": "+91 22 4269 9999",
     "lat": 19.130931,
     "lng": 72.824988,
     "google_place_id": "ChIJaUzg1x625zsRJCynVxLFYDg",
@@ -174,7 +174,8 @@
       "DIALYSIS",
       "TOXICOLOGY",
       "ANTIVENOM"
-    ]
+    ],
+    "phone_source": "https://www.kokilabenhospital.com/contacts.html"
   },
   {
     "seed_key": "jaslok_mumbai",
@@ -352,7 +353,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "Mulund-Goregaon Link Rd, Mulund West, Mumbai 400078",
-    "phone": "",
+    "phone": "022 4111 4111",
     "lat": 19.161794,
     "lng": 72.941809,
     "google_place_id": "ChIJYdMKQV645zsRluAWkv57qWw",
@@ -372,7 +373,8 @@
       "DIALYSIS",
       "TOXICOLOGY",
       "ANTIVENOM"
-    ]
+    ],
+    "phone_source": "https://www.fortishealthcare.com/blogs/emergency-hospital-mumbai"
   },
   {
     "seed_key": "saifee_mumbai",
@@ -434,7 +436,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "7th Rd, Rajawadi Colony, Ghatkopar East, Mumbai 400077",
-    "phone": "",
+    "phone": "022 2102 5149",
     "lat": 19.078675,
     "lng": 72.901298,
     "google_place_id": "ChIJq6qqqs_H5zsR_kBjsn8Z_7E",
@@ -449,7 +451,8 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://www.mcgm.gov.in/irj/go/km/docs/documents/HomePage%20Data/Whats%20New/NON-%20COVID%20FACILITIES/PERIPHERAL%20HOSPITALS.pdf (RTI manual E02 lists 21024149; MCGM peripheral-hospital list lists 210 25149/50/51/52)"
   },
   {
     "seed_key": "bhabha_mumbai",
@@ -506,7 +509,7 @@
     "cluster": "Navi Mumbai",
     "region_type": "urban_dense",
     "address": "Plot 13, Parsik Hill Rd, Sector 23, CBD Belapur, Navi Mumbai 400614",
-    "phone": "",
+    "phone": "+91 22 3350 3350",
     "lat": 19.020631,
     "lng": 73.029182,
     "google_place_id": "ChIJF6IWcLDD5zsRF5hc9DerDIA",
@@ -526,7 +529,8 @@
       "DIALYSIS",
       "TOXICOLOGY",
       "ANTIVENOM"
-    ]
+    ],
+    "phone_source": "https://www.apollohospitals.com/region/mumbai/contact-us/"
   },
   {
     "seed_key": "gleneagles_mumbai",
@@ -622,7 +626,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "SV Patel Rd, Borivali West, Mumbai 400103",
-    "phone": "",
+    "phone": "022 2893 2461",
     "lat": 19.241283,
     "lng": 72.854827,
     "google_place_id": "ChIJK79m-t6w5zsR3ZcNcpCKPgM",
@@ -637,7 +641,8 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://www.mcgm.gov.in/irj/go/km/docs/documents/HomePage%20Data/Whats%20New/NON-%20COVID%20FACILITIES/PERIPHERAL%20HOSPITALS.pdf"
   },
   {
     "seed_key": "jupiter_thane",
@@ -782,7 +787,7 @@
     "cluster": "Navi Mumbai",
     "region_type": "urban_dense",
     "address": "Sector 10A, Vashi, Navi Mumbai 400703",
-    "phone": "",
+    "phone": "022 6285 7001",
     "lat": 19.083424,
     "lng": 72.99592,
     "google_place_id": "ChIJEevu9DLB5zsRM7zvXH-O-rs",
@@ -802,7 +807,8 @@
       "DIALYSIS",
       "TOXICOLOGY",
       "ANTIVENOM"
-    ]
+    ],
+    "phone_source": "https://www.fortishealthcare.com/lp/fortis-hospital-vashi"
   },
   {
     "seed_key": "dypatil_nerul",
@@ -1013,12 +1019,12 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "P. D'Mello Road, Fort, Mumbai 400001",
-    "phone": null,
-    "lat": 18.9406,
-    "lng": 72.8371,
+    "phone": "022 2262 0242",
+    "lat": 18.940385,
+    "lng": 72.837813,
     "google_place_id": null,
-    "coord_quality": "approximate_manual",
-    "verify_pin": true,
+    "coord_quality": "place_match",
+    "verify_pin": false,
     "suggested_tier": "B",
     "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
     "zone": "South Mumbai",
@@ -1028,7 +1034,9 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://mumbaicity.gov.in/en/public-utility-category/hospitals/",
+    "coords_source": "https://en.wikipedia.org/wiki/St._George_Hospital,_Mumbai"
   },
   {
     "seed_key": "gt_mumbai",
@@ -1037,12 +1045,12 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "L.T. Marg, near CSMT, Mumbai 400001",
-    "phone": null,
-    "lat": 18.9446,
-    "lng": 72.8331,
+    "phone": "022 2262 1465",
+    "lat": 18.944614,
+    "lng": 72.831405,
     "google_place_id": null,
-    "coord_quality": "approximate_manual",
-    "verify_pin": true,
+    "coord_quality": "place_match",
+    "verify_pin": false,
     "suggested_tier": "B",
     "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
     "zone": "South Mumbai",
@@ -1052,7 +1060,9 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://mumbaicity.gov.in/en/public-utility-category/hospitals/",
+    "coords_source": "https://en.wikipedia.org/wiki/Gokuldas_Tejpal_Hospital"
   },
   {
     "seed_key": "hnreliance_mumbai",
@@ -1090,7 +1100,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "Sant Savta Marg, Byculla East, Mumbai 400027",
-    "phone": null,
+    "phone": "1800 266 0711",
     "lat": 18.9772,
     "lng": 72.8366,
     "google_place_id": null,
@@ -1104,7 +1114,8 @@
       "BURNS",
       "TRAUMA",
       "DIALYSIS"
-    ]
+    ],
+    "phone_source": "https://www.masinahospital.com/contact-us"
   },
   {
     "seed_key": "cama_mumbai",
@@ -1114,11 +1125,11 @@
     "region_type": "urban_dense",
     "address": "Mahapalika Marg, Fort, Mumbai 400001",
     "phone": null,
-    "lat": 18.9433,
-    "lng": 72.8323,
+    "lat": 18.942163,
+    "lng": 72.832079,
     "google_place_id": null,
-    "coord_quality": "approximate_manual",
-    "verify_pin": true,
+    "coord_quality": "place_match",
+    "verify_pin": false,
     "suggested_tier": "B",
     "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
     "zone": "South Mumbai",
@@ -1127,7 +1138,8 @@
       "MATERNITY",
       "NICU",
       "PAEDIATRIC"
-    ]
+    ],
+    "coords_source": "https://en.wikipedia.org/wiki/Cama_Hospital"
   },
   {
     "seed_key": "bhatia_mumbai",
@@ -1136,7 +1148,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "Tardeo Road, Tardeo, Mumbai 400007",
-    "phone": null,
+    "phone": "022 6666 0686",
     "lat": 18.9693,
     "lng": 72.8138,
     "google_place_id": null,
@@ -1151,7 +1163,8 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://www.bhatiahospital.org/contact"
   },
   {
     "seed_key": "wadia_children_mumbai",
@@ -1160,7 +1173,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "Acharya Donde Marg, Parel, Mumbai 400012",
-    "phone": null,
+    "phone": "+91 22 2419 7200",
     "lat": 19.003,
     "lng": 72.8429,
     "google_place_id": null,
@@ -1174,7 +1187,8 @@
       "PAEDIATRIC",
       "NICU",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://bjwhc.wadiahospitals.org/about-us/"
   },
   {
     "seed_key": "hbttrauma_jogeshwari",
@@ -1183,7 +1197,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "Western Express Highway, Jogeshwari East, Mumbai 400060",
-    "phone": null,
+    "phone": "022 2822 4081",
     "lat": 19.1393,
     "lng": 72.856,
     "google_place_id": null,
@@ -1197,7 +1211,8 @@
       "TRAUMA",
       "TOXICOLOGY",
       "ANTIVENOM"
-    ]
+    ],
+    "phone_source": "https://www.mcgm.gov.in/irj/go/km/docs/documents/HomePage%20Data/Whats%20New/NON-%20COVID%20FACILITIES/PERIPHERAL%20HOSPITALS.pdf"
   },
   {
     "seed_key": "shatabdi_kandivali",
@@ -1206,7 +1221,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "Shankar Lane, Kandivali West, Mumbai 400067",
-    "phone": null,
+    "phone": "022 2864 7003",
     "lat": 19.2047,
     "lng": 72.8423,
     "google_place_id": null,
@@ -1221,7 +1236,8 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://www.mcgm.gov.in/irj/go/km/docs/documents/HomePage%20Data/Whats%20New/NON-%20COVID%20FACILITIES/PERIPHERAL%20HOSPITALS.pdf"
   },
   {
     "seed_key": "vndesai_santacruz",
@@ -1230,7 +1246,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "Vakola, Santacruz East, Mumbai 400055",
-    "phone": null,
+    "phone": "022 2618 2081",
     "lat": 19.0795,
     "lng": 72.8478,
     "google_place_id": null,
@@ -1245,7 +1261,8 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://www.mcgm.gov.in/irj/go/km/docs/documents/HomePage%20Data/Whats%20New/NON-%20COVID%20FACILITIES/PERIPHERAL%20HOSPITALS.pdf"
   },
   {
     "seed_key": "bhaktivedanta_mira",
@@ -1254,12 +1271,12 @@
     "cluster": "Mira-Bhayandar",
     "region_type": "urban_dense",
     "address": "Srishti Complex, Mira Road East 401107",
-    "phone": null,
-    "lat": 19.2799,
-    "lng": 72.8713,
+    "phone": "079 6900 2222",
+    "lat": 19.2700058,
+    "lng": 72.8704648,
     "google_place_id": null,
-    "coord_quality": "approximate_manual",
-    "verify_pin": true,
+    "coord_quality": "place_match",
+    "verify_pin": false,
     "suggested_tier": "A",
     "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
     "zone": "Western Suburbs",
@@ -1274,7 +1291,9 @@
       "DIALYSIS",
       "TOXICOLOGY",
       "ANTIVENOM"
-    ]
+    ],
+    "phone_source": "https://www.bhaktivedantahospital.com/faqs (hospital's own 'For Emergency' number (call centre, 079 code))",
+    "coords_source": "https://en.wikipedia.org/wiki/Bhaktivedanta_Hospital"
   },
   {
     "seed_key": "wockhardt_mira",
@@ -1283,12 +1302,12 @@
     "cluster": "Mira-Bhayandar",
     "region_type": "urban_dense",
     "address": "Mira Road East 401107",
-    "phone": null,
-    "lat": 19.2722,
-    "lng": 72.8699,
+    "phone": "+91 81081 81081",
+    "lat": 19.284478,
+    "lng": 72.862127,
     "google_place_id": null,
-    "coord_quality": "approximate_manual",
-    "verify_pin": true,
+    "coord_quality": "place_match",
+    "verify_pin": false,
     "suggested_tier": "A",
     "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
     "zone": "Western Suburbs",
@@ -1303,7 +1322,9 @@
       "DIALYSIS",
       "TOXICOLOGY",
       "ANTIVENOM"
-    ]
+    ],
+    "phone_source": "https://www.wockhardthospitals.com/mira-road/ (Mira Road 'Emergency' number on the hospital page)",
+    "coords_source": "https://www.wockhardthospitals.com/mira-road/ (Get Directions map link)"
   },
   {
     "seed_key": "mtagarwal_mulund",
@@ -1312,7 +1333,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "Mulund West, Mumbai 400080",
-    "phone": null,
+    "phone": "022 2560 5729",
     "lat": 19.1735,
     "lng": 72.9508,
     "google_place_id": null,
@@ -1327,7 +1348,8 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://www.mcgm.gov.in/irj/go/km/docs/documents/HomePage%20Data/Whats%20New/NON-%20COVID%20FACILITIES/PERIPHERAL%20HOSPITALS.pdf"
   },
   {
     "seed_key": "kurlabhabha_mumbai",
@@ -1336,7 +1358,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "Kurla West, Mumbai 400070",
-    "phone": null,
+    "phone": "022 2650 0144",
     "lat": 19.0703,
     "lng": 72.8797,
     "google_place_id": null,
@@ -1351,7 +1373,8 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://www.mcgm.gov.in/irj/go/km/docs/documents/HomePage%20Data/Whats%20New/NON-%20COVID%20FACILITIES/PERIPHERAL%20HOSPITALS.pdf"
   },
   {
     "seed_key": "central_ulhasnagar",
@@ -1384,7 +1407,7 @@
     "cluster": "Kalyan",
     "region_type": "urban_dense",
     "address": "Godrej Hill, Kalyan West 421301",
-    "phone": null,
+    "phone": "022 6884 6134",
     "lat": 19.2425,
     "lng": 73.1302,
     "google_place_id": null,
@@ -1399,7 +1422,8 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://www.fortishealthcare.com/location/fortis-hospital-kalyan-mumbai (listed for appointments; no separate emergency line on the page)"
   },
   {
     "seed_key": "nbc_airoli",
@@ -1408,7 +1432,7 @@
     "cluster": "Navi Mumbai",
     "region_type": "urban_dense",
     "address": "Sector 13, Airoli, Navi Mumbai 400708",
-    "phone": null,
+    "phone": "022 2764 3333",
     "lat": 19.1561,
     "lng": 72.9969,
     "google_place_id": null,
@@ -1420,7 +1444,8 @@
     "ownership": "PRIVATE",
     "services": [
       "BURNS"
-    ]
+    ],
+    "phone_source": "https://karmayog.org/?p=13904 (NGO directory 'Burns Helpline'; hospital site burns-india.com was down) [verify]"
   },
   {
     "seed_key": "terna_nerul",
@@ -1429,7 +1454,7 @@
     "cluster": "Navi Mumbai",
     "region_type": "urban_dense",
     "address": "Sector 22, Nerul West, Navi Mumbai 400706",
-    "phone": null,
+    "phone": "+91 22 6157 8300",
     "lat": 19.0337,
     "lng": 73.0185,
     "google_place_id": null,
@@ -1444,7 +1469,8 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://ternamedical.org/terna-hospital"
   },
   {
     "seed_key": "mgm_kamothe",
@@ -1453,7 +1479,7 @@
     "cluster": "Panvel",
     "region_type": "urban_dense",
     "address": "Sector 1, Kamothe, Navi Mumbai 410209",
-    "phone": null,
+    "phone": "022 2743 7900",
     "lat": 19.017,
     "lng": 73.0958,
     "google_place_id": null,
@@ -1473,7 +1499,8 @@
       "DIALYSIS",
       "TOXICOLOGY",
       "ANTIVENOM"
-    ]
+    ],
+    "phone_source": "https://hospital-kamothe.mgmmcnm.edu.in/"
   },
   {
     "seed_key": "sdh_panvel",
@@ -1506,7 +1533,7 @@
     "cluster": "Vasai",
     "region_type": "urban_dense",
     "address": "Bangli, Vasai West 401202",
-    "phone": null,
+    "phone": "0250 232 2683",
     "lat": 19.3666,
     "lng": 72.8156,
     "google_place_id": null,
@@ -1521,7 +1548,8 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ]
+    ],
+    "phone_source": "https://www.ucanews.com/directory/health-services/india-vasai/140 (church directory listing, not the hospital's own site) [verify]"
   },
   {
     "seed_key": "rh_palghar",

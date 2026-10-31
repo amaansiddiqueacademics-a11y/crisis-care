@@ -43,6 +43,7 @@ Screens show the demo data from `npm run db:demo`.
 13. [Scripts and tests](#scripts-and-tests)
 14. [Data honesty and limitations](#data-honesty-and-limitations)
 15. [Credits](#credits)
+16. [License](#license)
 
 ---
 
@@ -471,6 +472,7 @@ Created by `backend/database/schema.sql` (safe to run repeatedly; new columns ar
 crisis-care/
 ├── docker-compose.yml            # PostgreSQL 16 + PostGIS 3.4
 ├── README.md
+├── LICENSE                       # MIT
 ├── .github/workflows/ci.yml      # runs backend tests and the frontend build on every push
 ├── docs/screenshots/             # images used in this README
 ├── backend/
@@ -547,7 +549,8 @@ GitHub Actions runs `npm test` (with a PostGIS service) and the frontend build o
 ## Data honesty and limitations
 
 - **Hospital stock is synthetic until a hospital confirms it.** The hospitals and their addresses are real; seeded inventory and service profiles are generated. Screens label figures *sample* until hospital staff edit them, then show when they were confirmed.
-- **25 hospitals were added by hand** (South Mumbai, suburbs, Mira-Bhayandar, Panvel, Palghar district). Their map pins are approximate (`coord_quality = approximate_manual`, `verify_pin = true`) and most have no phone number. Verify before real use.
+- **Map pins:** 23 hospitals still have `verify_pin = true`: 20 hand-placed approximate pins (`coord_quality = approximate_manual`, mostly municipal and Palghar government hospitals) and 3 address-level matches. Five hand-placed pins were corrected from Wikipedia or the hospital's own map link (`coords_source` in the data). Verify before real use.
+- **Phone numbers:** every number added by hand has a `phone_source` link in `crisis_care_hospitals.json`; two marked `[verify]` come from directories rather than the hospital's own site. Nine government hospitals (Cama, Kalwa, Rukminibai, Ulhasnagar Central, Panvel, and the four Palghar rural hospitals) still have no number, so the app hides their call button.
 - **No integration with hospital systems.** Stock is what each hospital's staff type in.
 - **Travel times are estimates**: straight-line distance divided by `AVG_SPEED_KMH`, labelled as such everywhere. There is no road routing or traffic data (the "Navigate" buttons open Google Maps, which does its own routing); map lines are straight. No arrival time is shown when the unit has no live GPS, an unusable position, or a fix older than `GPS_STALE_MINUTES`.
 - **Unit positions are only as live as the crew's phone GPS.** There is no GPS simulator; seeded units sit at their base station until a crew shares a position.
@@ -565,3 +568,9 @@ GitHub Actions runs `npm test` (with a PostGIS service) and the frontend build o
 - Map data: OpenStreetMap contributors.
 - Icons: lucide-react.
 - The citizen report uses tap-to-answer questions instead of free text so a reporter never has to type under stress. The only typed fields are credentials, an optional phone number, an optional landmark, search boxes, numeric vitals and stock counts, and the surgeon's name.
+
+---
+
+## License
+
+MIT. See [LICENSE](LICENSE). Hospital names and addresses are public information; photos keep the licences listed under Credits.
