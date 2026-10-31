@@ -1,5 +1,7 @@
 # Crisis Care: Real-Time Emergency Routing for Mumbai and Palghar
 
+[![CI](https://github.com/amaansiddiqueacademics-a11y/crisis-care/actions/workflows/ci.yml/badge.svg)](https://github.com/amaansiddiqueacademics-a11y/crisis-care/actions/workflows/ci.yml)
+
 Crisis Care connects **people in an emergency**, **ambulance crews**, **hospital emergency desks** and **dispatchers** so a patient is driven once, to a hospital that has already said yes and can treat their condition.
 
 The problem it targets: in Mumbai a patient is often driven from hospital to hospital because the first one had no ICU bed, no cath lab or no specialist on duty. Every hospital that says no costs time. Crisis Care sends the nearest suitable ambulance, tells the hospital what the patient needs before arrival, and ranks hospitals by what the patient needs, not only by distance.
@@ -9,6 +11,18 @@ The problem it targets: in Mumbai a patient is often driven from hospital to hos
 | Frontend | React 19, Vite, Tailwind CSS 3, Leaflet (OpenStreetMap), socket.io-client, lucide-react |
 | Backend | Node.js 20+ (ESM), Express 5, Socket.IO, JWT, bcryptjs, express-validator, helmet, express-rate-limit |
 | Database | PostgreSQL 16+ with PostGIS 3.4 |
+
+## Screenshots
+
+| Citizen: live tracking after a report | Ambulance crew: patient, triage and hospital ranking |
+| :---: | :---: |
+| ![Tracking page](docs/screenshots/tracking.webp) | ![Ambulance crew screen](docs/screenshots/ambulance.webp) |
+| **Hospital desk: incoming patient and stock** | **Dispatch: live map, queue and fleet** |
+| ![Hospital emergency desk](docs/screenshots/hospital.webp) | ![Dispatch control](docs/screenshots/dispatch.webp) |
+| **Home: helplines, live figures, hospital finder** | **On a phone: two-tap emergency report** |
+| ![Home page](docs/screenshots/home.webp) | <img src="docs/screenshots/mobile-report.webp" alt="Report form on a phone" width="260"> |
+
+Screens show the demo data from `npm run db:demo`.
 
 ---
 
@@ -297,7 +311,7 @@ Each hospital has its own **hospital ID** (equal to its `seed_key`) and password
 
 ## Demo walkthrough
 
-Run `npm run db:demo` in `backend` (re-run with `-- --reset` to cancel the open demo cases and recreate them). It creates, through the same services the website uses:
+Run `npm run db:demo` in `backend` (re-run with `-- --reset` to end the open demo cases and recreate them: cases not yet in transport are cancelled, the one already on its way to hospital is completed). It creates, through the same services the website uses:
 
 | Case | Where | State |
 | :--- | :--- | :--- |
@@ -457,6 +471,8 @@ Created by `backend/database/schema.sql` (safe to run repeatedly; new columns ar
 crisis-care/
 ├── docker-compose.yml            # PostgreSQL 16 + PostGIS 3.4
 ├── README.md
+├── .github/workflows/ci.yml      # runs backend tests and the frontend build on every push
+├── docs/screenshots/             # images used in this README
 ├── backend/
 │   ├── .env.example              # copy to .env
 │   ├── data/
@@ -521,6 +537,8 @@ Frontend: `VITE_BACKEND_URL` (dev proxy target) and `VITE_API_URL` (for a separa
 | backend | `npm test` | End-to-end test on a throwaway database |
 | frontend | `npm run dev` | Dev server on :3000 |
 | frontend | `npm run build` / `npm run preview` | Production bundle in `frontend/dist` / serve it |
+
+GitHub Actions runs `npm test` (with a PostGIS service) and the frontend build on every push and pull request; see the CI badge at the top.
 
 `npm test` creates a throwaway database next to yours (`<dbname>_test`), applies the schema and seed, and exercises sign-in, role checks, validation, dispatch, hospital decline and accept, ICU reservation, every ambulance stage, queueing, cancellation, Socket.IO delivery and the audit log. The database user must be allowed to `CREATE DATABASE`. It takes about a minute because of password hashing.
 

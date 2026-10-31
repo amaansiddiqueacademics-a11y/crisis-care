@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: crisis
+          POSTGRES_PASSWORD: crisis_ci_password
+          POSTGRES_DB: crisis_care
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U crisis -d crisis_care"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      # The test creates and drops its own <db>_test database on this server.
+      DATABASE_URL: postgresql://crisis:crisis_ci_password@localhost:5432/crisis_care
+      JWT_SECRET: ci-only-secret-not-used-anywhere-else-0123456789
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build

@@ -170,8 +170,9 @@ const ReportForm = () => {
       <header>
         <h1 className="text-4xl sm:text-5xl font-black">Get help now</h1>
         <p className="text-stone-500 mt-2">Two taps send an ambulance. Everything else is optional and helps the hospital get ready.</p>
-        <div className="mt-4 rounded-2xl bg-red-50 border border-red-200 p-3 text-sm text-red-900 flex flex-wrap items-center gap-2">
-          <PhoneCall className="w-4 h-4" /> Prefer to talk? <a href={tel('108')} className="font-black underline">Call 108</a> or <a href={tel('112')} className="font-black underline">112</a>. You can do both.
+        <div className="mt-4 rounded-2xl bg-red-50 border border-red-200 p-3 text-sm text-red-900 flex items-start gap-2">
+          <PhoneCall className="w-4 h-4 mt-0.5 shrink-0" />
+          <span>Prefer to talk? <a href={tel('108')} className="font-black underline">Call 108</a> or <a href={tel('112')} className="font-black underline">112</a>. You can do both.</span>
         </div>
       </header>
 

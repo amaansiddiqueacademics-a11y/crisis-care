@@ -63,9 +63,29 @@ const respond = async (hospitalId, decision, reason) => {
 
 const report = (input) => createEmergency({ callerName: DEMO, patientCount: 1, ...input });
 
+/**
+ * End an open demo case. Cases not yet in transport are cancelled; a case already on its way to
+ * hospital cannot be cancelled (by design), so the crew finishes the trip instead.
+ */
+const closeDemoCase = async (code) => {
+  const { rows } = await pool.query(
+    "SELECT status, ambulance_id FROM emergency_requests WHERE emergency_code = $1",
+    [code]
+  );
+  const { status, ambulance_id: ambulanceId } = rows[0];
+
+  if (!["TRANSPORTING", "ARRIVED"].includes(status)) {
+    await cancelEmergency(code);
+    return;
+  }
+
+  if (status === "TRANSPORTING") await advanceStage(ambulanceId, "ARRIVE_HOSPITAL", {});
+  await advanceStage(ambulanceId, "HANDOVER", {});
+};
+
 async function main() {
   if (process.argv.includes("--reset")) {
-    for (const code of await openDemo()) await cancelEmergency(code);
+    for (const code of await openDemo()) await closeDemoCase(code);
   }
 
   if ((await openDemo()).length > 0) {
