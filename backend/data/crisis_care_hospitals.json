@@ -436,7 +436,7 @@
     "cluster": "Mumbai",
     "region_type": "urban_dense",
     "address": "7th Rd, Rajawadi Colony, Ghatkopar East, Mumbai 400077",
-    "phone": "022 2102 5149",
+    "phone": "",
     "lat": 19.078675,
     "lng": 72.901298,
     "google_place_id": "ChIJq6qqqs_H5zsR_kBjsn8Z_7E",
@@ -451,8 +451,7 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ],
-    "phone_source": "https://www.mcgm.gov.in/irj/go/km/docs/documents/HomePage%20Data/Whats%20New/NON-%20COVID%20FACILITIES/PERIPHERAL%20HOSPITALS.pdf (RTI manual E02 lists 21024149; MCGM peripheral-hospital list lists 210 25149/50/51/52)"
+    ]
   },
   {
     "seed_key": "bhabha_mumbai",
@@ -1020,11 +1019,11 @@
     "region_type": "urban_dense",
     "address": "P. D'Mello Road, Fort, Mumbai 400001",
     "phone": "022 2262 0242",
-    "lat": 18.940385,
-    "lng": 72.837813,
+    "lat": 18.9406,
+    "lng": 72.8371,
     "google_place_id": null,
-    "coord_quality": "place_match",
-    "verify_pin": false,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
     "suggested_tier": "B",
     "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
     "zone": "South Mumbai",
@@ -1035,8 +1034,7 @@
       "ANTIVENOM",
       "TOXICOLOGY"
     ],
-    "phone_source": "https://mumbaicity.gov.in/en/public-utility-category/hospitals/",
-    "coords_source": "https://en.wikipedia.org/wiki/St._George_Hospital,_Mumbai"
+    "phone_source": "https://mumbaicity.gov.in/en/public-utility-category/hospitals/"
   },
   {
     "seed_key": "gt_mumbai",
@@ -1046,11 +1044,11 @@
     "region_type": "urban_dense",
     "address": "L.T. Marg, near CSMT, Mumbai 400001",
     "phone": "022 2262 1465",
-    "lat": 18.944614,
-    "lng": 72.831405,
+    "lat": 18.9446,
+    "lng": 72.8331,
     "google_place_id": null,
-    "coord_quality": "place_match",
-    "verify_pin": false,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
     "suggested_tier": "B",
     "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
     "zone": "South Mumbai",
@@ -1061,8 +1059,7 @@
       "ANTIVENOM",
       "TOXICOLOGY"
     ],
-    "phone_source": "https://mumbaicity.gov.in/en/public-utility-category/hospitals/",
-    "coords_source": "https://en.wikipedia.org/wiki/Gokuldas_Tejpal_Hospital"
+    "phone_source": "https://mumbaicity.gov.in/en/public-utility-category/hospitals/"
   },
   {
     "seed_key": "hnreliance_mumbai",
@@ -1125,11 +1122,11 @@
     "region_type": "urban_dense",
     "address": "Mahapalika Marg, Fort, Mumbai 400001",
     "phone": null,
-    "lat": 18.942163,
-    "lng": 72.832079,
+    "lat": 18.9433,
+    "lng": 72.8323,
     "google_place_id": null,
-    "coord_quality": "place_match",
-    "verify_pin": false,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
     "suggested_tier": "B",
     "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
     "zone": "South Mumbai",
@@ -1138,8 +1135,7 @@
       "MATERNITY",
       "NICU",
       "PAEDIATRIC"
-    ],
-    "coords_source": "https://en.wikipedia.org/wiki/Cama_Hospital"
+    ]
   },
   {
     "seed_key": "bhatia_mumbai",
@@ -1272,11 +1268,11 @@
     "region_type": "urban_dense",
     "address": "Srishti Complex, Mira Road East 401107",
     "phone": "079 6900 2222",
-    "lat": 19.2700058,
-    "lng": 72.8704648,
+    "lat": 19.2799,
+    "lng": 72.8713,
     "google_place_id": null,
-    "coord_quality": "place_match",
-    "verify_pin": false,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
     "suggested_tier": "A",
     "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
     "zone": "Western Suburbs",
@@ -1292,8 +1288,7 @@
       "TOXICOLOGY",
       "ANTIVENOM"
     ],
-    "phone_source": "https://www.bhaktivedantahospital.com/faqs (hospital's own 'For Emergency' number (call centre, 079 code))",
-    "coords_source": "https://en.wikipedia.org/wiki/Bhaktivedanta_Hospital"
+    "phone_source": "https://www.bhaktivedantahospital.com/faqs (hospital's own 'For Emergency' number (call centre, 079 code))"
   },
   {
     "seed_key": "wockhardt_mira",
@@ -1303,11 +1298,11 @@
     "region_type": "urban_dense",
     "address": "Mira Road East 401107",
     "phone": "+91 81081 81081",
-    "lat": 19.284478,
-    "lng": 72.862127,
+    "lat": 19.2722,
+    "lng": 72.8699,
     "google_place_id": null,
-    "coord_quality": "place_match",
-    "verify_pin": false,
+    "coord_quality": "approximate_manual",
+    "verify_pin": true,
     "suggested_tier": "A",
     "source": "Manual entry from public listings, 2026-10-10 (approximate pin, verify)",
     "zone": "Western Suburbs",
@@ -1323,8 +1318,7 @@
       "TOXICOLOGY",
       "ANTIVENOM"
     ],
-    "phone_source": "https://www.wockhardthospitals.com/mira-road/ (Mira Road 'Emergency' number on the hospital page)",
-    "coords_source": "https://www.wockhardthospitals.com/mira-road/ (Get Directions map link)"
+    "phone_source": "https://www.wockhardthospitals.com/mira-road/ (Mira Road 'Emergency' number on the hospital page)"
   },
   {
     "seed_key": "mtagarwal_mulund",
@@ -1407,7 +1401,7 @@
     "cluster": "Kalyan",
     "region_type": "urban_dense",
     "address": "Godrej Hill, Kalyan West 421301",
-    "phone": "022 6884 6134",
+    "phone": "",
     "lat": 19.2425,
     "lng": 73.1302,
     "google_place_id": null,
@@ -1422,8 +1416,7 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ],
-    "phone_source": "https://www.fortishealthcare.com/location/fortis-hospital-kalyan-mumbai (listed for appointments; no separate emergency line on the page)"
+    ]
   },
   {
     "seed_key": "nbc_airoli",
@@ -1432,7 +1425,7 @@
     "cluster": "Navi Mumbai",
     "region_type": "urban_dense",
     "address": "Sector 13, Airoli, Navi Mumbai 400708",
-    "phone": "022 2764 3333",
+    "phone": "",
     "lat": 19.1561,
     "lng": 72.9969,
     "google_place_id": null,
@@ -1444,8 +1437,7 @@
     "ownership": "PRIVATE",
     "services": [
       "BURNS"
-    ],
-    "phone_source": "https://karmayog.org/?p=13904 (NGO directory 'Burns Helpline'; hospital site burns-india.com was down) [verify]"
+    ]
   },
   {
     "seed_key": "terna_nerul",
@@ -1533,7 +1525,7 @@
     "cluster": "Vasai",
     "region_type": "urban_dense",
     "address": "Bangli, Vasai West 401202",
-    "phone": "0250 232 2683",
+    "phone": "",
     "lat": 19.3666,
     "lng": 72.8156,
     "google_place_id": null,
@@ -1548,8 +1540,7 @@
       "PAEDIATRIC",
       "ANTIVENOM",
       "TOXICOLOGY"
-    ],
-    "phone_source": "https://www.ucanews.com/directory/health-services/india-vasai/140 (church directory listing, not the hospital's own site) [verify]"
+    ]
   },
   {
     "seed_key": "rh_palghar",
