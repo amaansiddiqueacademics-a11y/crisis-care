@@ -12,6 +12,9 @@ import { MapView } from '../common/MapView';
 import { ConfirmDialog, ErrorNote, Field, TriageBadge, minutesAgo, timeAgo } from '../common/ui';
 import { etaShort, gpsText, mapStage, routeLine, trackingMarkers } from '../common/tracking';
 
+// Stable empty list, so memoised values do not recompute on every render while data loads.
+const NONE = [];
+
 const km = (a, b) => {
   const rad = (d) => (d * Math.PI) / 180;
   const x = Math.sin(rad(b.lat - a.lat) / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(rad(b.lng - a.lng) / 2) ** 2;
@@ -151,8 +154,8 @@ const Console = () => {
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelBusy, setCancelBusy] = useState(false);
 
-  const emergencies = board.data?.emergencies || [];
-  const units = board.data?.ambulances || [];
+  const emergencies = board.data?.emergencies ?? NONE;
+  const units = board.data?.ambulances ?? NONE;
   const selected = emergencies.find((e) => e.code === selectedCode) || emergencies[0];
 
   const act = async (path, body, msg) => {
