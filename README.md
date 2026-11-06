@@ -1,6 +1,15 @@
 # Crisis Care: Real-Time Emergency Routing for Mumbai and Palghar
 
 [![CI](https://github.com/amaansiddiqueacademics-a11y/crisis-care/actions/workflows/ci.yml/badge.svg)](https://github.com/amaansiddiqueacademics-a11y/crisis-care/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Node.js 20+](https://img.shields.io/badge/Node.js-20%2B-339933?logo=nodedotjs&logoColor=white)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![Vite 8](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![Express 5](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
+![Socket.IO 4](https://img.shields.io/badge/Socket.IO-4-010101?logo=socketdotio&logoColor=white)
+![PostgreSQL 16 + PostGIS 3.4](https://img.shields.io/badge/PostgreSQL_16-PostGIS_3.4-4169E1?logo=postgresql&logoColor=white)
+![Tailwind CSS 3](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)
+![Leaflet](https://img.shields.io/badge/Maps-Leaflet_%2B_OpenStreetMap-199900?logo=leaflet&logoColor=white)
 
 Crisis Care connects **people in an emergency**, **ambulance crews**, **hospital emergency desks** and **dispatchers** so a patient is driven once, to a hospital that has already said yes and can treat their condition.
 
